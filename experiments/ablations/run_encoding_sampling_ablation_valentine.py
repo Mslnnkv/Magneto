@@ -82,9 +82,7 @@ def run_valentine_benchmark_one_level(BENCHMARK='valentine', DATASET='musicians'
     )
     result_file = os.path.join(
         results_dir,
-        f'{BENCHMARK}_{DATASET}_grid_search_results_{
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
-    )
+        f'{BENCHMARK}_{DATASET}_grid_search_results_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv')
     create_result_file(results_dir, result_file, HEADER)
 
     # for folder in os.listdir(ROOT): 
@@ -117,8 +115,7 @@ def run_valentine_benchmark_one_level(BENCHMARK='valentine', DATASET='musicians'
         for encoding_mode, sampling_mode, sampling_size in product(
             encoding_modes, sampling_modes, sampling_sizes
         ):
-            print(f"Testing configuration: {encoding_mode}, {
-                  sampling_mode}, {sampling_size}")
+            print(f"Testing configuration: {encoding_mode}, {sampling_mode}, {sampling_size}")
 
             # Initialize matcher with current parameter combination
             matcher = mm.Magneto(
@@ -161,8 +158,7 @@ def run_valentine_benchmark_one_level(BENCHMARK='valentine', DATASET='musicians'
 
             record_result(result_file, result)
 
-            print(f"MRR: {mrr_score:.4f}, RecallAtGT {
-                  all_metrics['RecallAtSizeofGroundTruth']:.4f} Runtime: {runtime:.2f}s")
+            print(f"MRR: {mrr_score:.4f}, RecallAtGT {all_metrics['RecallAtSizeofGroundTruth']:.4f} Runtime: {runtime:.2f}s")
         print("Done with ", folder, "\n")
 
 
@@ -205,9 +201,7 @@ def run_valentine_benchmark_three_levels(BENCHMARK='valentine', DATASET='OpenDat
     )
     result_file = os.path.join(
         results_dir,
-        f'{BENCHMARK}_{DATASET}_grid_search_results_{
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
-    )
+        f'{BENCHMARK}_{DATASET}_grid_search_results_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv')
     create_result_file(results_dir, result_file, HEADER)
 
     # for type in os.listdir(ROOT): 
@@ -253,8 +247,7 @@ def run_valentine_benchmark_three_levels(BENCHMARK='valentine', DATASET='OpenDat
             for encoding_mode, sampling_mode, sampling_size in product(
                 encoding_modes, sampling_modes, sampling_sizes
             ):
-                print(f"Testing configuration: {encoding_mode}, {
-                      sampling_mode}, {sampling_size}")
+                print(f"Testing configuration: {encoding_mode}, {sampling_mode}, {sampling_size}")
 
                 # Initialize matcher with current parameter combination
                 matcher = mm.Magneto(
@@ -299,8 +292,7 @@ def run_valentine_benchmark_three_levels(BENCHMARK='valentine', DATASET='OpenDat
 
                 record_result(result_file, result)
 
-                print(f"MRR: {mrr_score:.4f}, RecallAtGT {
-                      all_metrics['RecallAtSizeofGroundTruth']:.4f} Runtime: {runtime:.2f}s")
+                print(f"MRR: {mrr_score:.4f}, RecallAtGT {all_metrics['RecallAtSizeofGroundTruth']:.4f} Runtime: {runtime:.2f}s")
             print("Done with ", table_folder, "\n")
 
 

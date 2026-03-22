@@ -14,7 +14,7 @@ from magneto.utils.utils import (
 )
 from magneto.utils.dataframe_table import DataframeTable
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # это для HuggingFace
 
 class Magneto:
     """
@@ -29,24 +29,36 @@ class Magneto:
     DEFAULT_PARAMS = {
         "embedding_model": "mpnet",
         "llm_model": "gpt-4o-mini",
+        # Доп. параметры вызова LLM (температура и тд)
         "llm_model_kwargs": {},
+        # Режим сериализации колонки в текст перед энкодером:
         "encoding_mode": "header_values_verbose",
+        # Как выбирать примеры значений из столбца для сериализации.
         "sampling_mode": "mixed",
         "sampling_size": 10,
         "topk": 20,
+        # Включать ли строковый матчинг по именам колонок (fuzzy string similarity).
         "include_strsim_matches": False,
+        # Включать ли эмбеддинг-матчинг (основной механизм retrieval на SLM).
         "include_embedding_matches": True,
+        # Минимальный порог похожести (score) для кандидатов по эмбеддингам.
         "embedding_threshold": 0.1,
+        # Включать ли точные совпадения имен колонок (после чистки) как совпадение со score=1.0.
         "include_equal_matches": True,
+        # Включать ли BP reranker(bipartite matching): пытается сделать глобально согласованный
+        # набор соответствий (ближе к 1 - 1), используя кандидатов из retrieval. (похоже на максимальное взвешенное паросочетание в двудольном графе)
         "use_bp_reranker": True,
+        # Включать ли LLM reranker
         "use_gpt_reranker": False,
+        # Если True — использовать только GPT reranker без предварительного retrieval.
+        # Сейчас False.
         "gpt_only": False,
     }
 
     def __init__(self, **kwargs: Any) -> None:
         """
         Initialize Magneto with default or user-specified parameters.
-
+        Конструктор, в kwargs передать нужные значения.
         Args:
             **kwargs: Overriding parameters for the matching process.
 
@@ -62,12 +74,20 @@ class Magneto:
         If 'include_strsim_matches' is True, computes string-similarity 
         scores for each column pair (source, target) and updates self.input_sim_map.
         """
-        if self.params["include_strsim_matches"]:
+        if self.params["include_strsim_matches"]: #если включили в настройках
             strsim_candidates = get_str_similarity_candidates(
                 self.df_source.columns, self.df_target.columns
-            )
-            for (source_col, target_col), score in strsim_candidates.items():
-                self.input_sim_map[source_col][target_col] = score
+            ) # передаем только названия. get_str_similarity_candidates возвращает :
+            ''''
+                ("birth_date", "date_of_birth"): 0.92,
+                ("age", "patient_age"): 0.88,
+                ...
+            '''
+            for (source_col, target_col), score in strsim_candidates.items(): #цикл по словарю: пара - ключ, score - значение
+                self.input_sim_map[source_col][target_col] = score #словарь словарей, в итоге получили: self.input_sim_map = {
+                                                                                                            #"A": {"B": 0.5, "C": 0.7},
+                                                                                                            #"D": {"E": 0.9}
+                                                                                                                    #}
 
     def apply_embedding_matches(self) -> None:
         """
@@ -76,14 +96,14 @@ class Magneto:
         """
         if not self.params["include_embedding_matches"]:
             return
-
-        embeddingMatcher = EmbeddingMatcher(params=self.params)
+        #ЗАМЕНА
+        embeddingMatcher = EmbeddingMatcher(params=self.params) # класс кот отвечает за то как сериализовать и тд
 
         embedding_candidates = embeddingMatcher.get_embedding_similarity_candidates(
             self.df_source, self.df_target
-        )
+        ) # берем схожие колонки
         for (col_source, col_target), score in embedding_candidates.items():
-            self.input_sim_map[col_source][col_target] = score
+            self.input_sim_map[col_source][col_target] = score #сложить в общий контейнер
 
     def apply_equal_matches(self) -> None:
         """
@@ -98,14 +118,14 @@ class Magneto:
             target_cols_cleaned = {
                 col: remove_invalid_characters(col.strip().lower())
                 for col in self.df_target.columns
-            }
+            } #создаем 2 словаря с очищенными названиями колонок
 
             for source_col, cand_source in source_cols_cleaned.items():
                 for target_col, cand_target in target_cols_cleaned.items():
                     if cand_source == cand_target:
-                        self.input_sim_map[source_col][target_col] = 1.0
+                        self.input_sim_map[source_col][target_col] = 1.0 #если точное совпадение - ставим вероятность = 1
 
-    def get_top_k_matches(self, col_matches: Dict[str, float]) -> list:
+    def get_top_k_matches(self, col_matches: Dict[str, float]) -> list: # берем k лучших
         """
         Sorts column-to-score mappings and returns the top-K matches.
 
@@ -166,10 +186,13 @@ class Magneto:
             target_values,
             matched_columns,
         )
+        # на вход: таблицы, примеры значений, и список кандидатов из retrieval
+        # на выход: обновленные оценки
 
         return matched_columns
     
     def apply_strategies_in_order(self, order: Dict[str, int]) -> None:
+        # если одна и та же пара встретится в разных методах - то запишется результат последней, тут это можно контролировать
         """
         Applies match strategies in the user-defined order if provided, 
         ignoring any strategies assigned a value of -1.
@@ -224,7 +247,7 @@ class Magneto:
             matches = convert_to_valentine_format(
                 self.input_sim_map, source_table.name, target_table.name
             )
-            matches = self.call_llm_reranker(source_table, target_table, matches)
+            matches = self.call_llm_reranker(source_table, target_table, matches) #call llm берет 10 значений
             matches = convert_to_valentine_format(
                 matches, source_table.name, target_table.name
             )
@@ -232,7 +255,7 @@ class Magneto:
         else:
             self.input_sim_map = {col: {} for col in self.df_source.columns}
             
-            if "strategy_order" in self.params:
+            if "strategy_order" in self.params: # если пользователь задал порядок иначе - по умолчанию
                 self.apply_strategies_in_order(self.params["strategy_order"])
             else:
                 match_strategies = [
@@ -253,8 +276,10 @@ class Magneto:
             matches = convert_to_valentine_format(
                 self.input_sim_map, source_table.name, target_table.name
             )
+            #Valentine - формат: ключ = ((source_table_name, source_col),
+            #                            (target_table_name, target_col)), значение = score.
 
-            if self.params["use_bp_reranker"]:
+            if self.params["use_bp_reranker"]: #венгерский алгоритм или что-то такое
                 matches = arrange_bipartite_matches(
                     matches,
                     self.df_source,
@@ -263,7 +288,7 @@ class Magneto:
                     target_table.name,
                 )
 
-            if self.params["use_gpt_reranker"]:
+            if self.params["use_gpt_reranker"]:# или гпт
                 print("Applying LLM reranker")
                 matches = self.call_llm_reranker(source_table, target_table, matches)
                 matches = convert_to_valentine_format(

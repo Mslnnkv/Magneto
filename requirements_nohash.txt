@@ -1,0 +1,11 @@
+fuzzywuzzy
+openai
+ollama
+python-dotenv
+scipy
+sentence_transformers
+tiktoken
+transformers
+torch
+mmh3
+valentine

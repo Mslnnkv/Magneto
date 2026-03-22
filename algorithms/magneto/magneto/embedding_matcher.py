@@ -99,6 +99,7 @@ class EmbeddingMatcher:
             n_samples=self.params["sampling_size"],
         )
 
+        # каждая колонка отдельно
         input_col_repr_dict = {encoder.encode(source_df, col): col for col in source_df.columns}
         target_col_repr_dict = {encoder.encode(target_df, col): col for col in target_df.columns}
 

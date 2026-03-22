@@ -33,14 +33,12 @@ def run_grid_search_experiment(BENCHMARK='gdc_studies', DATASET='gdc_studies', R
     )
     result_file = os.path.join(
         results_dir,
-        f'{BENCHMARK}_{DATASET}_grid_search_strategies_results_{
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
+        f'{BENCHMARK}_{DATASET}_grid_search_strategies_results_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
     )
     create_result_file(results_dir, result_file, HEADER)
 
     # Load target data
-    target_file = os.path.join(
-        ROOT, 'target-tables', 'gdc_unique_columns_concat_values.csv')
+    target_file = os.path.join(ROOT, 'target-tables', 'gdc_unique_columns_concat_values.csv')
     df_target = pd.read_csv(target_file, low_memory=False)
 
     studies_path = os.path.join(ROOT, 'source-tables')

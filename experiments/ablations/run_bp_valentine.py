@@ -55,9 +55,7 @@ def run_valentine_benchmark_one_level(BENCHMARK='valentine', DATASET='musicians'
     )
     result_file = os.path.join(
         results_dir,
-        f'{BENCHMARK}_{DATASET}_use_bp_reranker_{
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
-    )
+        f'{BENCHMARK}_{DATASET}_use_bp_reranker_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv')
     create_result_file(results_dir, result_file, HEADER)
 
     for folder in os.listdir(ROOT):
@@ -152,9 +150,7 @@ def run_valentine_benchmark_three_levels(BENCHMARK='valentine', DATASET='OpenDat
     )
     result_file = os.path.join(
         results_dir,
-        f'{BENCHMARK}_{DATASET}_use_bp_reranker_{
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
-    )
+        f'{BENCHMARK}_{DATASET}_use_bp_reranker_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv')
     create_result_file(results_dir, result_file, HEADER)
 
     for type in os.listdir(ROOT):

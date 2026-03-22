@@ -60,8 +60,7 @@ def run_ablation(BENCHMARK='gdc_studies', DATASET='gdc_studies', ROOT='data/gdc'
     )
     result_file = os.path.join(
         results_dir,
-        f'{BENCHMARK}_{DATASET}_gpt_reranker_results_{
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
+        f'{BENCHMARK}_{DATASET}_gpt_reranker_results_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
     )
     create_result_file(results_dir, result_file, HEADER)
 
