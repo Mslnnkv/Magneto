@@ -199,4 +199,5 @@ cython_debug/
 #.idea/
 
 .DS_Store
-**/.DS_Store
+**/.DS_Storealgorithms/magneto/finetuned_context_window_span_mpnet.pth 
+algorithms/magneto/finetuned_context_window_span_mpnet.pth 

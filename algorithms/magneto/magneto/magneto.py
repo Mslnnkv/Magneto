@@ -5,6 +5,13 @@ import pandas as pd
 from magneto.basic_matcher import get_str_similarity_candidates
 from magneto.bp_reranker import arrange_bipartite_matches
 from magneto.embedding_matcher import DEFAULT_MODELS, EmbeddingMatcher
+from magneto.span_embedding_matcher_v2 import SpanEmbeddingMatcherV2
+from magneto.span_embedding_matcher import SpanEmbeddingMatcher
+from magneto.encoding_modes import SPAN_CONTEXTUAL_ENCODING_MODES
+from magneto.embedding_matcher import DEFAULT_MODELS, EmbeddingMatcher
+from magneto.span_embedding_matcher import SpanEmbeddingMatcher
+from magneto.span_embedding_matcher_v2 import SpanEmbeddingMatcherV2
+from magneto.starmie_embedding_matcher import StarmieEmbeddingMatcher
 from magneto.llm_reranker import LLMReranker
 from magneto.utils.utils import (
     clean_df,
@@ -36,6 +43,17 @@ class Magneto:
         # Как выбирать примеры значений из столбца для сериализации.
         "sampling_mode": "mixed",
         "sampling_size": 10,
+        "max_context_columns": 7,
+        "include_target_type": True,
+        "include_target_values": True,
+        "target_start_marker": "<<TARGET_START>>",
+        "target_end_marker": "<<TARGET_END>>",
+        "target_block_start_marker": "<<TARGET_BLOCK_START>>",
+        "target_block_end_marker": "<<TARGET_BLOCK_END>>",
+        "col_marker": "<<COL>>",
+        "include_header": True,
+        "include_values": True,
+        "span_max_length": 512,
         "topk": 20,
         # Включать ли строковый матчинг по именам колонок (fuzzy string similarity).
         "include_strsim_matches": False,
@@ -85,26 +103,54 @@ class Magneto:
             '''
             for (source_col, target_col), score in strsim_candidates.items(): #цикл по словарю: пара - ключ, score - значение
                 self.input_sim_map[source_col][target_col] = score #словарь словарей, в итоге получили: self.input_sim_map = {
-                                                                                                            #"A": {"B": 0.5, "C": 0.7},
-                                                                                                            #"D": {"E": 0.9}
+                                                                                                            #"A": {"B": 0.5, "C": 0.7},                                                                                                  #"D": {"E": 0.9}
                                                                                                                     #}
+    #
+    # def apply_embedding_matches(self) -> None:
+    #     """
+    #     If 'include_embedding_matches' is True, uses EmbeddingMatcher
+    #     to compute similarity scores for column pairs, then updates self.input_sim_map.
+    #     """
+    #     if not self.params["include_embedding_matches"]:
+    #         return
+    #     #ЗАМЕНА
+    #     embeddingMatcher = EmbeddingMatcher(params=self.params) # класс кот отвечает за то как сериализовать и тд
+    #
+    #     embedding_candidates = embeddingMatcher.get_embedding_similarity_candidates(
+    #         self.df_source, self.df_target
+    #     ) # берем схожие колонки
+    #     for (col_source, col_target), score in embedding_candidates.items():
+    #         self.input_sim_map[col_source][col_target] = score #сложить в общий контейнер
 
     def apply_embedding_matches(self) -> None:
         """
-        If 'include_embedding_matches' is True, uses EmbeddingMatcher 
-        to compute similarity scores for column pairs, then updates self.input_sim_map.
+        If 'include_embedding_matches' is True, uses:
+        - EmbeddingMatcher for legacy/simple modes
+        - SpanEmbeddingMatcher for v3
+        - SpanEmbeddingMatcherV2 for v4
+        - StarmieEmbeddingMatcher for v5
         """
         if not self.params["include_embedding_matches"]:
             return
-        #ЗАМЕНА
-        embeddingMatcher = EmbeddingMatcher(params=self.params) # класс кот отвечает за то как сериализовать и тд
+
+        encoding_mode = self.params["encoding_mode"]
+
+        if encoding_mode == "table_context_window_span":
+            embeddingMatcher = SpanEmbeddingMatcher(params=self.params)
+        elif encoding_mode == "table_context_window_span_target_block":
+            embeddingMatcher = SpanEmbeddingMatcherV2(params=self.params)
+        elif encoding_mode == "table_context_window_starmie_marker":
+            embeddingMatcher = StarmieEmbeddingMatcher(params=self.params)
+        else:
+            embeddingMatcher = EmbeddingMatcher(params=self.params)
 
         embedding_candidates = embeddingMatcher.get_embedding_similarity_candidates(
             self.df_source, self.df_target
-        ) # берем схожие колонки
-        for (col_source, col_target), score in embedding_candidates.items():
-            self.input_sim_map[col_source][col_target] = score #сложить в общий контейнер
+        )
 
+        for (col_source, col_target), score in embedding_candidates.items():
+            self.input_sim_map[col_source][col_target] = score
+            
     def apply_equal_matches(self) -> None:
         """
         If 'include_equal_matches' is True, marks columns with identical 

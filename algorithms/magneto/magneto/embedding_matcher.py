@@ -6,6 +6,8 @@ from sentence_transformers import SentenceTransformer, models
 from transformers import AutoTokenizer
 
 from magneto.column_encoder import ColumnEncoder
+from magneto.contextual_column_encoder import ContextualColumnEncoder
+from magneto.encoding_modes import CONTEXTUAL_ENCODING_MODES, LEGACY_ENCODING_MODES
 from magneto.utils.embedding_utils import compute_cosine_similarity_simple
 from magneto.utils.utils import detect_column_type, get_samples
 
@@ -16,6 +18,7 @@ DEFAULT_MODELS = {
     "arctic": "Snowflake/snowflake-arctic-embed-l-v2.0",
     "minilm": "sentence-transformers/all-MiniLM-L6-v2"
 }
+
 
 class EmbeddingMatcher:
     def __init__(self, params):
@@ -28,14 +31,11 @@ class EmbeddingMatcher:
 
         # Load model and tokenizer
         if self.model_name in DEFAULT_MODELS:
-            # Use default model directly
             model_path = DEFAULT_MODELS[self.model_name]
             self.model = SentenceTransformer(model_path, device=self.device)
             self.tokenizer = AutoTokenizer.from_pretrained(model_path)
             print(f"Loaded default model '{self.model_name}' on {self.device}")
         elif "/" in self.model_name and not self.model_name.endswith((".pth", ".pt", ".bin", ".ckpt")):
-            # HuggingFace model identifier (contains "/" and doesn't look like a file extension)
-            # Try to load from HuggingFace
             try:
                 print(f"Attempting to load HuggingFace model '{self.model_name}'...")
                 self.model = SentenceTransformer(self.model_name, device=self.device)
@@ -50,7 +50,6 @@ class EmbeddingMatcher:
                 self.model = SentenceTransformer(model_path, device=self.device)
                 self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         elif os.path.exists(self.model_name) and os.path.isfile(self.model_name):
-            # Local fine-tuned model file - check this BEFORE HuggingFace to avoid false positives
             base_key = next((key for key in DEFAULT_MODELS if key in self.model_name), "mpnet")
             if base_key not in DEFAULT_MODELS:
                 print(f"Warning: No base model detected in {self.model_name}, defaulting to 'mpnet'")
@@ -91,20 +90,50 @@ class EmbeddingMatcher:
             embeddings.append(embeds)
         return torch.cat(embeddings)
 
+    def _build_encoder(self):
+        encoding_mode = self.params["encoding_mode"]
+
+        if encoding_mode in LEGACY_ENCODING_MODES:
+            return ColumnEncoder(
+                self.tokenizer,
+                encoding_mode=encoding_mode,
+                sampling_mode=self.params["sampling_mode"],
+                n_samples=self.params["sampling_size"],
+            )
+
+        if encoding_mode in CONTEXTUAL_ENCODING_MODES:
+            return ContextualColumnEncoder(
+                self.tokenizer,
+                encoding_mode=encoding_mode,
+                sampling_mode=self.params["sampling_mode"],
+                n_samples=self.params["sampling_size"],
+                max_context_columns=self.params.get("max_context_columns"),
+                include_target_type=self.params.get("include_target_type", True),
+                include_target_values=self.params.get("include_target_values", True),
+                target_marker_start=self.params.get("target_marker_start", "<TARGET>"),
+                target_marker_end=self.params.get("target_marker_end", "</TARGET>"),
+            )
+
+        raise ValueError(f"Unsupported encoding mode: {encoding_mode}")
+
+    def _encode_columns(self, df, encoder):
+        encoded_pairs = []
+        for col in df.columns:
+            encoded_text = encoder.encode(df, col)
+            encoded_pairs.append((encoded_text, col))
+        return encoded_pairs
+
     def get_embedding_similarity_candidates(self, source_df, target_df):
-        encoder = ColumnEncoder(
-            self.tokenizer,
-            encoding_mode=self.params["encoding_mode"],
-            sampling_mode=self.params["sampling_mode"],
-            n_samples=self.params["sampling_size"],
-        )
+        encoder = self._build_encoder()
 
-        # каждая колонка отдельно
-        input_col_repr_dict = {encoder.encode(source_df, col): col for col in source_df.columns}
-        target_col_repr_dict = {encoder.encode(target_df, col): col for col in target_df.columns}
+        input_encoded_pairs = self._encode_columns(source_df, encoder)
+        target_encoded_pairs = self._encode_columns(target_df, encoder)
 
-        cleaned_input_cols = list(input_col_repr_dict.keys())
-        cleaned_target_cols = list(target_col_repr_dict.keys())
+        cleaned_input_cols = [text for text, _ in input_encoded_pairs]
+        cleaned_target_cols = [text for text, _ in target_encoded_pairs]
+
+        if len(cleaned_input_cols) == 0 or len(cleaned_target_cols) == 0:
+            return {}
 
         input_embeddings = self._get_embeddings(cleaned_input_cols, self.use_prompt_query)
         target_embeddings = self._get_embeddings(cleaned_target_cols)
@@ -115,13 +144,12 @@ class EmbeddingMatcher:
         )
 
         candidates = {}
-        for i, input_col in enumerate(cleaned_input_cols):
-            original_input = input_col_repr_dict[input_col]
+        for i, (_, original_input) in enumerate(input_encoded_pairs):
             for j in range(top_k):
                 target_idx = indices[i, j]
                 similarity = similarities[i, j].item()
                 if similarity >= self.embedding_threshold:
-                    original_target = target_col_repr_dict[cleaned_target_cols[target_idx]]
+                    _, original_target = target_encoded_pairs[target_idx]
                     candidates[(original_input, original_target)] = similarity
 
         return candidates
