@@ -27,6 +27,8 @@ results/
 # csv files
 *.csv
 
+*.pth
+
 log.txt
 
 # large files

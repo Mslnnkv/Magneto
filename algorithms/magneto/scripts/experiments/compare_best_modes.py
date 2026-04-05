@@ -1,8 +1,15 @@
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import pandas as pd
 from magneto import Magneto
 
-SOURCE_PATH = "miller2_vertical_70_ec_av_source.csv"
-TARGET_PATH = "miller2_vertical_70_ec_av_target.csv"
+SOURCE_PATH = ROOT / "miller2_vertical_70_ec_av_source.csv"
+TARGET_PATH = ROOT / "miller2_vertical_70_ec_av_target.csv"
 
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -36,6 +43,9 @@ def run_mode(source_df, target_df, mode_name, max_context_columns=None):
         target_end_marker="<<TARGET_END>>",
         target_block_start_marker="<<TARGET_BLOCK_START>>",
         target_block_end_marker="<<TARGET_BLOCK_END>>",
+        col_marker="<<COL>>",
+        include_header=True,
+        include_values=True,
         span_max_length=512,
     )
     return matcher.get_matches(source_df, target_df)
@@ -52,22 +62,16 @@ def main():
     print("TARGET shape:", target_df.shape)
 
     legacy_matches = run_mode(source_df, target_df, "header_values_verbose")
-    contextual_v1_matches = run_mode(source_df, target_df, "table_context_target_values")
-    contextual_v2_matches = run_mode(
-        source_df, target_df, "table_context_window_target_values", max_context_columns=7
-    )
     contextual_v3_matches = run_mode(
         source_df, target_df, "table_context_window_span", max_context_columns=7
     )
-    contextual_v4_matches = run_mode(
-        source_df, target_df, "table_context_window_span_target_block", max_context_columns=7
+    contextual_v5_matches = run_mode(
+        source_df, target_df, "table_context_window_starmie_marker", max_context_columns=7
     )
 
     pretty_print_matches("LEGACY MODE: header_values_verbose", legacy_matches, limit=50)
-    pretty_print_matches("CONTEXTUAL V1: table_context_target_values", contextual_v1_matches, limit=50)
-    pretty_print_matches("CONTEXTUAL V2: table_context_window_target_values", contextual_v2_matches, limit=50)
     pretty_print_matches("CONTEXTUAL V3: table_context_window_span", contextual_v3_matches, limit=50)
-    pretty_print_matches("CONTEXTUAL V4: table_context_window_span_target_block", contextual_v4_matches, limit=50)
+    pretty_print_matches("CONTEXTUAL V5: table_context_window_starmie_marker", contextual_v5_matches, limit=50)
 
 
 if __name__ == "__main__":

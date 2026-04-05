@@ -1,12 +1,17 @@
-import random
 from pathlib import Path
+import sys
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import random
 import pandas as pd
 
 
 random.seed(42)
 
-OUTPUT_DIR = Path("synthetic_context_needed_benchmark")
+OUTPUT_DIR = ROOT / "synthetic_context_needed_benchmark"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 COUNTRIES = ["DE", "FR", "IT", "ES", "NL"]

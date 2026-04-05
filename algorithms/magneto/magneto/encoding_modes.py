@@ -19,6 +19,7 @@ SPAN_CONTEXTUAL_ENCODING_MODES = {
     "table_context_window_span",
     "table_context_window_span_target_block",
     "table_context_window_starmie_marker",
+    "table_context_window_starmie_structured",
 }
 
 CONTEXTUAL_ENCODING_MODES = (

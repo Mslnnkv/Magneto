@@ -1,14 +1,19 @@
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import random
 import string
-from pathlib import Path
-
 import pandas as pd
 
 
 random.seed(42)
 
 
-OUTPUT_DIR = Path("synthetic_context_benchmark")
+OUTPUT_DIR = ROOT / "synthetic_context_benchmark"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
@@ -198,7 +203,6 @@ def generate_pair(domain: str, n_rows: int = 200):
     source_df = make_source_table(base_df)
     target_df = make_target_table(base_df)
 
-    # Ground truth строим через переименование без попытки восстановить шум идеально
     gt_rows = []
     for original_col in base_df.columns:
         source_base = SOURCE_RENAMES.get(original_col, original_col)

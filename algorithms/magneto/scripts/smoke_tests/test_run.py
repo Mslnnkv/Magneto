@@ -1,8 +1,15 @@
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import pandas as pd
 from magneto import Magneto
 
-source_df = pd.read_csv("source.csv")
-target_df = pd.read_csv("target.csv")
+source_df = pd.read_csv(ROOT / "source.csv")
+target_df = pd.read_csv(ROOT / "target.csv")
 
 matcher = Magneto(
     embedding_model="mpnet",

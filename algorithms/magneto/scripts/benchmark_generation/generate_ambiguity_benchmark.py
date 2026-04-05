@@ -1,12 +1,17 @@
-import random
 from pathlib import Path
+import sys
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import random
 import pandas as pd
 
 
 random.seed(42)
 
-OUTPUT_DIR = Path("synthetic_ambiguity_benchmark")
+OUTPUT_DIR = ROOT / "synthetic_ambiguity_benchmark"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
@@ -102,7 +107,6 @@ def make_source_table(block_df, prefix):
 
     df = block_df.rename(columns=mapping).copy()
 
-    # Rename to ambiguous repeated names with entity-specific suffix positions nearby
     cols = list(df.columns)
     df = df[cols]
 

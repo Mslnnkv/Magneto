@@ -5,10 +5,6 @@ import pandas as pd
 from magneto.basic_matcher import get_str_similarity_candidates
 from magneto.bp_reranker import arrange_bipartite_matches
 from magneto.embedding_matcher import DEFAULT_MODELS, EmbeddingMatcher
-from magneto.span_embedding_matcher_v2 import SpanEmbeddingMatcherV2
-from magneto.span_embedding_matcher import SpanEmbeddingMatcher
-from magneto.encoding_modes import SPAN_CONTEXTUAL_ENCODING_MODES
-from magneto.embedding_matcher import DEFAULT_MODELS, EmbeddingMatcher
 from magneto.span_embedding_matcher import SpanEmbeddingMatcher
 from magneto.span_embedding_matcher_v2 import SpanEmbeddingMatcherV2
 from magneto.starmie_embedding_matcher import StarmieEmbeddingMatcher
@@ -126,9 +122,9 @@ class Magneto:
         """
         If 'include_embedding_matches' is True, uses:
         - EmbeddingMatcher for legacy/simple modes
-        - SpanEmbeddingMatcher for v3
-        - SpanEmbeddingMatcherV2 for v4
-        - StarmieEmbeddingMatcher for v5
+        - SpanEmbeddingMatcher for span-based contextual window encoding
+        - SpanEmbeddingMatcherV2 for target-block span encoding
+        - StarmieEmbeddingMatcher for Starmie-style marker encoding
         """
         if not self.params["include_embedding_matches"]:
             return
@@ -139,7 +135,7 @@ class Magneto:
             embeddingMatcher = SpanEmbeddingMatcher(params=self.params)
         elif encoding_mode == "table_context_window_span_target_block":
             embeddingMatcher = SpanEmbeddingMatcherV2(params=self.params)
-        elif encoding_mode == "table_context_window_starmie_marker":
+        elif encoding_mode in {"table_context_window_starmie_marker", "table_context_window_starmie_structured"}:
             embeddingMatcher = StarmieEmbeddingMatcher(params=self.params)
         else:
             embeddingMatcher = EmbeddingMatcher(params=self.params)

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import torch
 from sentence_transformers import SentenceTransformer
@@ -26,39 +27,64 @@ class SpanEmbeddingMatcher:
     def _load_model_and_tokenizer(self):
         if self.model_name in DEFAULT_MODELS:
             model_path = DEFAULT_MODELS[self.model_name]
-            self.model = SentenceTransformer(model_path, device=self.device)
-            self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
+            self.model = self._load_sentence_transformer(model_path)
+            self.tokenizer = self._load_tokenizer(model_path)
             print(f"Loaded default model '{self.model_name}' on {self.device}")
         elif "/" in self.model_name and not self.model_name.endswith((".pth", ".pt", ".bin", ".ckpt")):
             try:
                 print(f"Attempting to load HuggingFace model '{self.model_name}'...")
-                self.model = SentenceTransformer(self.model_name, device=self.device)
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, use_fast=True)
+                self.model = self._load_sentence_transformer(self.model_name)
+                self.tokenizer = self._load_tokenizer(self.model_name)
                 print(f"Successfully loaded HuggingFace model '{self.model_name}' on {self.device}")
             except Exception as e:
                 print(f"Failed to load HuggingFace model '{self.model_name}': {e}")
                 print("Falling back to default 'mpnet' model")
                 model_path = DEFAULT_MODELS["mpnet"]
-                self.model = SentenceTransformer(model_path, device=self.device)
-                self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
-        elif os.path.exists(self.model_name) and os.path.isfile(self.model_name):
+                self.model = self._load_sentence_transformer(model_path)
+                self.tokenizer = self._load_tokenizer(model_path)
+        else:
+            resolved_local_model_path = self._resolve_local_model_path()
+            if not resolved_local_model_path:
+                raise ValueError(f"Invalid model name: {self.model_name}")
+
             base_key = next((key for key in DEFAULT_MODELS if key in self.model_name), "mpnet")
             if base_key not in DEFAULT_MODELS:
                 base_key = "mpnet"
 
             base_model_path = DEFAULT_MODELS[base_key]
-            self.model = SentenceTransformer(base_model_path, device=self.device)
-            self.tokenizer = AutoTokenizer.from_pretrained(base_model_path, use_fast=True)
+            self.model = self._load_sentence_transformer(base_model_path)
+            self.tokenizer = self._load_tokenizer(base_model_path)
             print(f"Loaded base model '{base_key}' on {self.device}")
-            print(f"Loading fine-tuned weights from {self.model_name}")
+            print(f"Loading fine-tuned weights from {resolved_local_model_path}")
 
-            state_dict = torch.load(self.model_name, map_location=self.device, weights_only=True)
+            state_dict = torch.load(resolved_local_model_path, map_location=self.device, weights_only=True)
             self.model.load_state_dict(state_dict)
             self.model.eval().to(self.device)
-        else:
-            raise ValueError(f"Invalid model name: {self.model_name}")
 
         self.model.eval()
+
+    def _resolve_local_model_path(self):
+        candidate = Path(self.model_name)
+        if candidate.exists() and candidate.is_file():
+            return str(candidate)
+
+        package_root_candidate = Path(__file__).resolve().parents[1] / self.model_name
+        if package_root_candidate.exists() and package_root_candidate.is_file():
+            return str(package_root_candidate)
+
+        return None
+
+    def _load_sentence_transformer(self, model_path):
+        try:
+            return SentenceTransformer(model_path, device=self.device, local_files_only=True)
+        except Exception:
+            return SentenceTransformer(model_path, device=self.device)
+
+    def _load_tokenizer(self, model_path):
+        try:
+            return AutoTokenizer.from_pretrained(model_path, use_fast=True, local_files_only=True)
+        except Exception:
+            return AutoTokenizer.from_pretrained(model_path, use_fast=True)
 
     def _build_encoder(self):
         return SpanContextualEncoder(

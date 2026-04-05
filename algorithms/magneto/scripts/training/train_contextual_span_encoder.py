@@ -1,5 +1,11 @@
-import math
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import math
 
 import pandas as pd
 import torch
@@ -12,8 +18,8 @@ from magneto.embedding_matcher import DEFAULT_MODELS
 from magneto.span_contextual_encoder import SpanContextualEncoder
 
 
-BASE_MODEL = "mpnet"   # можно заменить на путь или другой ключ
-MODEL_SAVE_PATH = "finetuned_context_window_span_mpnet.pth"
+BASE_MODEL = "mpnet"
+MODEL_SAVE_PATH = str(ROOT / "finetuned_context_window_span_mpnet.pth")
 MAX_LENGTH = 512
 BATCH_SIZE = 8
 EPOCHS = 3
@@ -21,11 +27,9 @@ LR = 2e-5
 MARGIN = 0.2
 
 TRIPLET_FILES = [
-    "synthetic_context_needed_benchmark/context_needed_triplets.csv",
-    "synthetic_hard_context_benchmark/hard_triplets.csv",
+    str(ROOT / "synthetic_context_needed_benchmark" / "context_needed_triplets.csv"),
+    str(ROOT / "synthetic_hard_context_benchmark" / "hard_triplets.csv"),
 ]
-
-# если хочешь добавить реальные пары, просто положи triplets csv в этот список
 
 
 class TripletTableDataset(Dataset):

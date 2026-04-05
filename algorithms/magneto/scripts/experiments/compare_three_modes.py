@@ -1,8 +1,15 @@
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import pandas as pd
 from magneto import Magneto
 
-SOURCE_PATH = "miller2_vertical_70_ec_av_source.csv"
-TARGET_PATH = "miller2_vertical_70_ec_av_target.csv"
+SOURCE_PATH = ROOT / "miller2_vertical_70_ec_av_source.csv"
+TARGET_PATH = ROOT / "miller2_vertical_70_ec_av_target.csv"
 
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:

@@ -1,10 +1,17 @@
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import pandas as pd
 from magneto.span_embedding_matcher import SpanEmbeddingMatcher
 from magneto.span_contextual_encoder import SpanContextualEncoder
 from magneto.embedding_matcher import DEFAULT_MODELS
 from transformers import AutoTokenizer
 
-SOURCE_PATH = "miller2_vertical_70_ec_av_source.csv"
+SOURCE_PATH = ROOT / "miller2_vertical_70_ec_av_source.csv"
 
 source_df = pd.read_csv(SOURCE_PATH)
 source_df.columns = source_df.columns.str.strip()

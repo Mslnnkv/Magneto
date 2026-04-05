@@ -1,12 +1,17 @@
-import random
 from pathlib import Path
+import sys
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import random
 import pandas as pd
 
 
 random.seed(42)
 
-OUTPUT_DIR = Path("synthetic_hard_context_benchmark")
+OUTPUT_DIR = ROOT / "synthetic_hard_context_benchmark"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 PERSON_NAMES = ["Alex", "Sam", "Chris", "Jordan", "Taylor", "Morgan", "Casey", "Jamie"]
