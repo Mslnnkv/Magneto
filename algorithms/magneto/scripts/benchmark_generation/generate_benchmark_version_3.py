@@ -11,7 +11,7 @@ import pandas as pd
 
 random.seed(42)
 
-OUTPUT_DIR = ROOT / "synthetic_context_needed_benchmark"
+OUTPUT_DIR = ROOT / "synthetic_benchmark_version_3"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 COUNTRIES = ["DE", "FR", "IT", "ES", "NL"]
@@ -155,17 +155,9 @@ def build_tables(n_rows=250):
 def main():
     source_df, target_df, gt_df = build_tables(n_rows=250)
 
-    source_df.to_csv(OUTPUT_DIR / "context_needed_source.csv", index=False)
-    target_df.to_csv(OUTPUT_DIR / "context_needed_target.csv", index=False)
-    gt_df.to_csv(OUTPUT_DIR / "context_needed_ground_truth.csv", index=False)
-
-    print("Saved to:", OUTPUT_DIR.resolve())
-    print("Source shape:", source_df.shape)
-    print("Target shape:", target_df.shape)
-    print("Ground truth size:", len(gt_df))
-    print("\nSource columns:", list(source_df.columns))
-    print("\nTarget columns:", list(target_df.columns))
-
+    source_df.to_csv(OUTPUT_DIR / "version_3_source.csv", index=False)
+    target_df.to_csv(OUTPUT_DIR / "version_3_target.csv", index=False)
+    gt_df.to_csv(OUTPUT_DIR / "version_3_ground_truth.csv", index=False)
 
 if __name__ == "__main__":
     main()

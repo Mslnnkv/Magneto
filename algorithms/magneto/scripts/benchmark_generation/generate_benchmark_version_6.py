@@ -12,7 +12,7 @@ import pandas as pd
 
 random.seed(42)
 
-OUTPUT_DIR = ROOT / "synthetic_starmie_context_benchmark"
+OUTPUT_DIR = ROOT / "synthetic_benchmark_version_6"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 PERSON_NAMES = ["Alex", "Sam", "Chris", "Jordan", "Taylor", "Morgan", "Casey", "Jamie"]
@@ -164,18 +164,9 @@ def build_source_target(n_rows=300):
 def main():
     source_df, target_df, gt_df = build_source_target(n_rows=300)
 
-    source_df.to_csv(OUTPUT_DIR / "starmie_source.csv", index=False)
-    target_df.to_csv(OUTPUT_DIR / "starmie_target.csv", index=False)
-    gt_df.to_csv(OUTPUT_DIR / "starmie_ground_truth.csv", index=False)
-
-    print("Saved Starmie-style benchmark to:", OUTPUT_DIR.resolve())
-    print("Source shape:", source_df.shape)
-    print("Target shape:", target_df.shape)
-    print("Ground truth size:", len(gt_df))
-    print()
-    print("First source columns:", list(source_df.columns[:14]))
-    print("First target columns:", list(target_df.columns[:14]))
-
+    source_df.to_csv(OUTPUT_DIR / "version_6_source.csv", index=False)
+    target_df.to_csv(OUTPUT_DIR / "version_6_target.csv", index=False)
+    gt_df.to_csv(OUTPUT_DIR / "version_6_ground_truth.csv", index=False)
 
 if __name__ == "__main__":
     main()

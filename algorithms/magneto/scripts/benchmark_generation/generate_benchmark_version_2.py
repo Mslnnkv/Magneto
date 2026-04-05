@@ -13,7 +13,7 @@ import pandas as pd
 random.seed(42)
 
 
-OUTPUT_DIR = ROOT / "synthetic_context_benchmark"
+OUTPUT_DIR = ROOT / "synthetic_benchmark_version_2"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
@@ -179,7 +179,6 @@ def build_ground_truth(source_df: pd.DataFrame, target_df: pd.DataFrame, origina
                 break
 
         if source_match is None:
-            # fallback by position via original names approximation
             for c in source_df.columns:
                 if c.startswith(original_col[:3]):
                     source_match = c
@@ -256,8 +255,6 @@ def main():
     summary_df = pd.DataFrame(summary_rows)
     summary_df.to_csv(OUTPUT_DIR / "benchmark_summary.csv", index=False)
 
-    print("Generated benchmark files in:", OUTPUT_DIR.resolve())
-    print(summary_df)
 
 
 if __name__ == "__main__":

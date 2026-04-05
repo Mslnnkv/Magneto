@@ -1,13 +1,14 @@
 # How To Run
 
-## 1. Сгенерировать benchmark
+## 1. Сгенерировать benchmark-версии
 
 ```powershell
-.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_ambiguity_benchmark.py
-.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_context_needed_benchmark.py
-.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_hard_context_benchmark.py
-.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_heldout_context_benchmark.py
-.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_starmie_context_benchmark.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_1.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_2.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_3.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_4.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_5.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_6.py
 ```
 
 ## 2. Построить triplets для fine-tuning
@@ -17,8 +18,8 @@
 ```
 
 Triplets строятся только из:
-- `context_needed`
-- `hard_context`
+- `version_3`
+- `version_4`
 
 ## 3. Обучить модели
 

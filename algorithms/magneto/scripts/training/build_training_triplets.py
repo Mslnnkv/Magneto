@@ -91,16 +91,16 @@ def build_triplets_for_pair(source_csv, target_csv, gt_csv, output_csv, negative
 def main():
     tasks = [
         {
-            "source_csv": str(ROOT / "synthetic_context_needed_benchmark" / "context_needed_source.csv"),
-            "target_csv": str(ROOT / "synthetic_context_needed_benchmark" / "context_needed_target.csv"),
-            "gt_csv": str(ROOT / "synthetic_context_needed_benchmark" / "context_needed_ground_truth.csv"),
-            "output_csv": str(ROOT / "synthetic_context_needed_benchmark" / "context_needed_triplets.csv"),
+            "source_csv": str(ROOT / "synthetic_benchmark_version_3" / "version_3_source.csv"),
+            "target_csv": str(ROOT / "synthetic_benchmark_version_3" / "version_3_target.csv"),
+            "gt_csv": str(ROOT / "synthetic_benchmark_version_3" / "version_3_ground_truth.csv"),
+            "output_csv": str(ROOT / "synthetic_benchmark_version_3" / "version_3_triplets.csv"),
         },
         {
-            "source_csv": str(ROOT / "synthetic_hard_context_benchmark" / "hard_source.csv"),
-            "target_csv": str(ROOT / "synthetic_hard_context_benchmark" / "hard_target.csv"),
-            "gt_csv": str(ROOT / "synthetic_hard_context_benchmark" / "hard_ground_truth.csv"),
-            "output_csv": str(ROOT / "synthetic_hard_context_benchmark" / "hard_triplets.csv"),
+            "source_csv": str(ROOT / "synthetic_benchmark_version_4" / "version_4_source.csv"),
+            "target_csv": str(ROOT / "synthetic_benchmark_version_4" / "version_4_target.csv"),
+            "gt_csv": str(ROOT / "synthetic_benchmark_version_4" / "version_4_ground_truth.csv"),
+            "output_csv": str(ROOT / "synthetic_benchmark_version_4" / "version_4_triplets.csv"),
         },
     ]
 

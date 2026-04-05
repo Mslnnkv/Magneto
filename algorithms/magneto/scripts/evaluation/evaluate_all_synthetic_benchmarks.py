@@ -34,46 +34,46 @@ PLOT_MODEL_LABELS = {
 def build_benchmarks():
     return [
         BenchmarkConfig(
-            name="ambiguity",
+            name="version_1",
             benchmark_type="pair_set",
-            source_path=ROOT / "synthetic_ambiguity_benchmark" / "ambiguity_source.csv",
-            target_path=ROOT / "synthetic_ambiguity_benchmark" / "ambiguity_target.csv",
-            ground_truth_path=ROOT / "synthetic_ambiguity_benchmark" / "ambiguity_ground_truth.csv",
+            source_path=ROOT / "synthetic_benchmark_version_1" / "version_1_source.csv",
+            target_path=ROOT / "synthetic_benchmark_version_1" / "version_1_target.csv",
+            ground_truth_path=ROOT / "synthetic_benchmark_version_1" / "version_1_ground_truth.csv",
             topk=10,
         ),
         BenchmarkConfig(
-            name="context_needed",
+            name="version_3",
             benchmark_type="ranking",
-            source_path=ROOT / "synthetic_context_needed_benchmark" / "context_needed_source.csv",
-            target_path=ROOT / "synthetic_context_needed_benchmark" / "context_needed_target.csv",
-            ground_truth_path=ROOT / "synthetic_context_needed_benchmark" / "context_needed_ground_truth.csv",
-            topk=10,
-            ranking_ks=(1, 3, 5),
-        ),
-        BenchmarkConfig(
-            name="hard_context",
-            benchmark_type="ranking",
-            source_path=ROOT / "synthetic_hard_context_benchmark" / "hard_source.csv",
-            target_path=ROOT / "synthetic_hard_context_benchmark" / "hard_target.csv",
-            ground_truth_path=ROOT / "synthetic_hard_context_benchmark" / "hard_ground_truth.csv",
+            source_path=ROOT / "synthetic_benchmark_version_3" / "version_3_source.csv",
+            target_path=ROOT / "synthetic_benchmark_version_3" / "version_3_target.csv",
+            ground_truth_path=ROOT / "synthetic_benchmark_version_3" / "version_3_ground_truth.csv",
             topk=10,
             ranking_ks=(1, 3, 5),
         ),
         BenchmarkConfig(
-            name="heldout_context",
+            name="version_4",
             benchmark_type="ranking",
-            source_path=ROOT / "synthetic_heldout_context_benchmark" / "heldout_source.csv",
-            target_path=ROOT / "synthetic_heldout_context_benchmark" / "heldout_target.csv",
-            ground_truth_path=ROOT / "synthetic_heldout_context_benchmark" / "heldout_ground_truth.csv",
+            source_path=ROOT / "synthetic_benchmark_version_4" / "version_4_source.csv",
+            target_path=ROOT / "synthetic_benchmark_version_4" / "version_4_target.csv",
+            ground_truth_path=ROOT / "synthetic_benchmark_version_4" / "version_4_ground_truth.csv",
             topk=10,
             ranking_ks=(1, 3, 5),
         ),
         BenchmarkConfig(
-            name="starmie_context",
+            name="version_5",
             benchmark_type="ranking",
-            source_path=ROOT / "synthetic_starmie_context_benchmark" / "starmie_source.csv",
-            target_path=ROOT / "synthetic_starmie_context_benchmark" / "starmie_target.csv",
-            ground_truth_path=ROOT / "synthetic_starmie_context_benchmark" / "starmie_ground_truth.csv",
+            source_path=ROOT / "synthetic_benchmark_version_5" / "version_5_source.csv",
+            target_path=ROOT / "synthetic_benchmark_version_5" / "version_5_target.csv",
+            ground_truth_path=ROOT / "synthetic_benchmark_version_5" / "version_5_ground_truth.csv",
+            topk=10,
+            ranking_ks=(1, 3, 5),
+        ),
+        BenchmarkConfig(
+            name="version_6",
+            benchmark_type="ranking",
+            source_path=ROOT / "synthetic_benchmark_version_6" / "version_6_source.csv",
+            target_path=ROOT / "synthetic_benchmark_version_6" / "version_6_target.csv",
+            ground_truth_path=ROOT / "synthetic_benchmark_version_6" / "version_6_ground_truth.csv",
             topk=10,
             ranking_ks=(1, 3, 5),
         ),
@@ -112,7 +112,7 @@ def save_plot(summary_df, output_path: Path):
 
     ranking_df["model_label"] = ranking_df["model_label"].map(PLOT_MODEL_LABELS).fillna(ranking_df["model_label"])
 
-    benchmark_order = ["context_needed", "hard_context", "heldout_context", "starmie_context"]
+    benchmark_order = ["version_3", "version_4", "version_5", "version_6"]
     ranking_df["benchmark"] = pd.Categorical(
         ranking_df["benchmark"],
         categories=benchmark_order,

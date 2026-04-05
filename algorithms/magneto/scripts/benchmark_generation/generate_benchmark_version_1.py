@@ -11,7 +11,7 @@ import pandas as pd
 
 random.seed(42)
 
-OUTPUT_DIR = ROOT / "synthetic_ambiguity_benchmark"
+OUTPUT_DIR = ROOT / "synthetic_benchmark_version_1"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
@@ -118,9 +118,7 @@ def make_source_table(block_df, prefix):
 
 
 def make_target_table(block_df, prefix):
-    """
-    Target: same ambiguous headers.
-    """
+
     mapping = {
         f"{prefix}_id": "id",
         f"{prefix}_name": "name",
@@ -132,10 +130,7 @@ def make_target_table(block_df, prefix):
 
 
 def build_wide_source_target(n_rows=200):
-    """
-    Build one pair of wide tables with repeated ambiguous column groups.
-    Context is needed because many columns share identical local names.
-    """
+
     customer = build_customer_block(n_rows)
     product = build_product_block(n_rows)
     order = build_order_block(n_rows)
@@ -219,9 +214,9 @@ def build_wide_source_target(n_rows=200):
 def main():
     source_df, target_df, gt_df = build_wide_source_target(n_rows=250)
 
-    source_path = OUTPUT_DIR / "ambiguity_source.csv"
-    target_path = OUTPUT_DIR / "ambiguity_target.csv"
-    gt_path = OUTPUT_DIR / "ambiguity_ground_truth.csv"
+    source_path = OUTPUT_DIR / "version_1_source.csv"
+    target_path = OUTPUT_DIR / "version_1_target.csv"
+    gt_path = OUTPUT_DIR / "version_1_ground_truth.csv"
 
     source_df.to_csv(source_path, index=False)
     target_df.to_csv(target_path, index=False)

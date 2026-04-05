@@ -8,16 +8,16 @@ if str(ROOT) not in sys.path:
 from magneto.evaluation import BenchmarkConfig, ModelConfig, evaluate_many
 
 
-BENCHMARK_DIR = ROOT / "synthetic_ambiguity_benchmark"
+BENCHMARK_DIR = ROOT / "synthetic_benchmark_version_1"
 
 
 def main():
     benchmark = BenchmarkConfig(
-        name="ambiguity",
+        name="version_1",
         benchmark_type="pair_set",
-        source_path=BENCHMARK_DIR / "ambiguity_source.csv",
-        target_path=BENCHMARK_DIR / "ambiguity_target.csv",
-        ground_truth_path=BENCHMARK_DIR / "ambiguity_ground_truth.csv",
+        source_path=BENCHMARK_DIR / "version_1_source.csv",
+        target_path=BENCHMARK_DIR / "version_1_target.csv",
+        ground_truth_path=BENCHMARK_DIR / "version_1_ground_truth.csv",
         topk=10,
     )
     models = [
@@ -26,9 +26,9 @@ def main():
     ]
     summary_df, errors_df = evaluate_many([benchmark], models)
     print(summary_df.fillna(""))
-    summary_df.to_csv(BENCHMARK_DIR / "ambiguity_evaluation_results.csv", index=False)
-    errors_df.to_csv(BENCHMARK_DIR / "ambiguity_evaluation_errors.csv", index=False)
-    print("\nSaved to:", (BENCHMARK_DIR / "ambiguity_evaluation_results.csv").resolve())
+    summary_df.to_csv(BENCHMARK_DIR / "version_1_evaluation_results.csv", index=False)
+    errors_df.to_csv(BENCHMARK_DIR / "version_1_evaluation_errors.csv", index=False)
+    print("\nSaved to:", (BENCHMARK_DIR / "version_1_evaluation_results.csv").resolve())
 
 
 if __name__ == "__main__":

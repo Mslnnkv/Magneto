@@ -27,8 +27,8 @@ LR = 2e-5
 MARGIN = 0.2
 
 TRIPLET_FILES = [
-    str(ROOT / "synthetic_context_needed_benchmark" / "context_needed_triplets.csv"),
-    str(ROOT / "synthetic_hard_context_benchmark" / "hard_triplets.csv"),
+    str(ROOT / "synthetic_benchmark_version_3" / "version_3_triplets.csv"),
+    str(ROOT / "synthetic_benchmark_version_4" / "version_4_triplets.csv"),
 ]
 
 

@@ -8,8 +8,8 @@ if str(ROOT) not in sys.path:
 import pandas as pd
 from magneto import Magneto
 
-SOURCE_PATH = "synthetic_context_needed_benchmark/context_needed_source.csv"
-TARGET_PATH = "synthetic_context_needed_benchmark/context_needed_target.csv"
+SOURCE_PATH = "synthetic_benchmark_version_3/version_3_source.csv"
+TARGET_PATH = "synthetic_benchmark_version_3/version_3_target.csv"
 
 
 def run(model_name):

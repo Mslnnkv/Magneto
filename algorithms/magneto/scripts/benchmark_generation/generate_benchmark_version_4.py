@@ -11,7 +11,7 @@ import pandas as pd
 
 random.seed(42)
 
-OUTPUT_DIR = ROOT / "synthetic_hard_context_benchmark"
+OUTPUT_DIR = ROOT / "synthetic_benchmark_version_4"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 PERSON_NAMES = ["Alex", "Sam", "Chris", "Jordan", "Taylor", "Morgan", "Casey", "Jamie"]
@@ -127,18 +127,10 @@ def build_source_target(n_rows=250):
 def main():
     source_df, target_df, gt_df = build_source_target(n_rows=250)
 
-    source_df.to_csv(OUTPUT_DIR / "hard_source.csv", index=False)
-    target_df.to_csv(OUTPUT_DIR / "hard_target.csv", index=False)
-    gt_df.to_csv(OUTPUT_DIR / "hard_ground_truth.csv", index=False)
+    source_df.to_csv(OUTPUT_DIR / "version_4_source.csv", index=False)
+    target_df.to_csv(OUTPUT_DIR / "version_4_target.csv", index=False)
+    gt_df.to_csv(OUTPUT_DIR / "version_4_ground_truth.csv", index=False)
 
-    print("Saved benchmark to:", OUTPUT_DIR.resolve())
-    print("Source shape:", source_df.shape)
-    print("Target shape:", target_df.shape)
-    print("Ground truth size:", len(gt_df))
-    print("\nFirst source columns:")
-    print(list(source_df.columns[:15]))
-    print("\nFirst target columns:")
-    print(list(target_df.columns[:15]))
 
 
 if __name__ == "__main__":

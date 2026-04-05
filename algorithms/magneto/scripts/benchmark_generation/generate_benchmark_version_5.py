@@ -12,7 +12,7 @@ import pandas as pd
 
 random.seed(42)
 
-OUTPUT_DIR = ROOT / "synthetic_heldout_context_benchmark"
+OUTPUT_DIR = ROOT / "synthetic_benchmark_version_5"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 PERSON_NAMES = ["Alex", "Sam", "Chris", "Jordan", "Taylor", "Morgan", "Casey", "Jamie"]
@@ -169,17 +169,9 @@ def build_source_target(n_rows=280):
 def main():
     source_df, target_df, ground_truth_df = build_source_target(n_rows=280)
 
-    source_df.to_csv(OUTPUT_DIR / "heldout_source.csv", index=False)
-    target_df.to_csv(OUTPUT_DIR / "heldout_target.csv", index=False)
-    ground_truth_df.to_csv(OUTPUT_DIR / "heldout_ground_truth.csv", index=False)
-
-    print("Saved held-out benchmark to:", OUTPUT_DIR.resolve())
-    print("Source shape:", source_df.shape)
-    print("Target shape:", target_df.shape)
-    print("Ground truth size:", len(ground_truth_df))
-    print()
-    print("First source columns:", list(source_df.columns[:14]))
-    print("First target columns:", list(target_df.columns[:14]))
+    source_df.to_csv(OUTPUT_DIR / "version_5_source.csv", index=False)
+    target_df.to_csv(OUTPUT_DIR / "version_5_target.csv", index=False)
+    ground_truth_df.to_csv(OUTPUT_DIR / "version_5_ground_truth.csv", index=False)
 
 
 if __name__ == "__main__":

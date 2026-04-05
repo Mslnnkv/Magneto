@@ -8,14 +8,14 @@ if str(ROOT) not in sys.path:
 from magneto.evaluation import BenchmarkConfig, ModelConfig, evaluate_many
 
 
-BENCHMARK_DIR = ROOT / "synthetic_context_benchmark"
+BENCHMARK_DIR = ROOT / "synthetic_benchmark_version_2"
 DOMAINS = ["customers", "products", "orders", "employees"]
 
 
 def main():
     benchmarks = [
         BenchmarkConfig(
-            name=f"context_{domain}",
+            name=f"version_2_{domain}",
             benchmark_type="pair_set",
             source_path=BENCHMARK_DIR / f"{domain}_source.csv",
             target_path=BENCHMARK_DIR / f"{domain}_target.csv",
