@@ -16,18 +16,25 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 PLOT_MODEL_ORDER = [
     "header_values_verbose",
-    "table_context_window_span",
     "table_context_window_starmie_structured",
-    "finetuned_context_window_span",
     "finetuned_starmie_structured",
 ]
 
 PLOT_MODEL_LABELS = {
-    "header_values_verbose": "Baseline (no context)",
-    "table_context_window_span": "Current contextual",
-    "table_context_window_starmie_structured": "Starmie-like",
-    "finetuned_context_window_span": "Fine-tuned contextual",
-    "finetuned_starmie_structured": "Fine-tuned Starmie-like",
+    "header_values_verbose": "Magneto",
+    "table_context_window_starmie_structured": "Contextual Magneto",
+    "finetuned_starmie_structured": "Contextual Magneto (с дообучением)",
+}
+
+PLOT_MODEL_DISPLAY_ORDER = [
+    "Magneto",
+    "Contextual Magneto",
+    "Contextual Magneto (с дообучением)",
+]
+
+PLOT_BENCHMARK_LABELS = {
+    "version_5": "без шума",
+    "version_6": "с шумом",
 }
 
 
@@ -101,7 +108,7 @@ def build_models():
 
 
 def save_plot(summary_df, output_path: Path):
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(16, 10))
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(18, 7))
 
     ranking_df = summary_df[summary_df["benchmark_type"] == "ranking"].copy()
     ranking_df = ranking_df[ranking_df["model_label"].isin(PLOT_MODEL_ORDER)].copy()
@@ -110,38 +117,56 @@ def save_plot(summary_df, output_path: Path):
         plt.close(fig)
         return
 
-    ranking_df["model_label"] = ranking_df["model_label"].map(PLOT_MODEL_LABELS).fillna(ranking_df["model_label"])
+    # Поддерживаем и новый, и старый нейминг benchmark-ов при построении графика,
+    # чтобы можно было пересобирать диаграмму из уже существующего summary.csv.
+    benchmark_label_map = {
+        "heldout_context": "version_5",
+        "starmie_context": "version_6",
+        "version_5": "version_5",
+        "version_6": "version_6",
+    }
+    ranking_df["benchmark"] = ranking_df["benchmark"].map(benchmark_label_map)
+    ranking_df = ranking_df[ranking_df["benchmark"].isin(["version_5", "version_6"])].copy()
 
-    benchmark_order = ["version_3", "version_4", "version_5", "version_6"]
+    if ranking_df.empty:
+        plt.close(fig)
+        return
+
+    ranking_df["model_label"] = ranking_df["model_label"].map(PLOT_MODEL_LABELS).fillna(ranking_df["model_label"])
+    ranking_df["model_label"] = pd.Categorical(
+        ranking_df["model_label"],
+        categories=PLOT_MODEL_DISPLAY_ORDER,
+        ordered=True,
+    )
+
+    benchmark_order = ["version_5", "version_6"]
     ranking_df["benchmark"] = pd.Categorical(
         ranking_df["benchmark"],
         categories=benchmark_order,
         ordered=True,
     )
     ranking_df = ranking_df.sort_values(["benchmark", "model_label"])
-
-    top1_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="top1_accuracy")
-    top1_pivot.plot(kind="bar", ax=axes[0, 0], title="Top-1 Accuracy")
-    axes[0, 0].set_ylabel("Top-1")
-    axes[0, 0].set_xlabel("Benchmark")
-
-    top3_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="top3_accuracy")
-    top3_pivot.plot(kind="bar", ax=axes[0, 1], title="Top-3 Accuracy")
-    axes[0, 1].set_ylabel("Top-3")
-    axes[0, 1].set_xlabel("Benchmark")
+    ranking_df["benchmark"] = ranking_df["benchmark"].astype(str).map(
+        lambda value: PLOT_BENCHMARK_LABELS.get(value, value)
+    )
 
     top5_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="top5_accuracy")
-    top5_pivot.plot(kind="bar", ax=axes[1, 0], title="Top-5 Accuracy")
-    axes[1, 0].set_ylabel("Top-5")
-    axes[1, 0].set_xlabel("Benchmark")
+    top5_pivot = top5_pivot.reindex(columns=PLOT_MODEL_DISPLAY_ORDER)
+    top5_pivot.plot(kind="bar", ax=axes[0], title="Top-5 Accuracy", fontsize=14)
+    axes[0].set_ylabel("Top-5", fontsize=16)
+    axes[0].set_xlabel("Benchmark", fontsize=16)
 
     mrr_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="mrr")
-    mrr_pivot.plot(kind="bar", ax=axes[1, 1], title="MRR")
-    axes[1, 1].set_ylabel("MRR")
-    axes[1, 1].set_xlabel("Benchmark")
+    mrr_pivot = mrr_pivot.reindex(columns=PLOT_MODEL_DISPLAY_ORDER)
+    mrr_pivot.plot(kind="bar", ax=axes[1], title="MRR", fontsize=14)
+    axes[1].set_ylabel("MRR", fontsize=16)
+    axes[1].set_xlabel("Benchmark", fontsize=16)
 
     for ax in axes.flat:
-        ax.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
+        ax.tick_params(axis="x", labelsize=14, rotation=0)
+        ax.tick_params(axis="y", labelsize=14)
+        ax.title.set_fontsize(18)
+        ax.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=13, title_fontsize=14)
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=200, bbox_inches="tight")

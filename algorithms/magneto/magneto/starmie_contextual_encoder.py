@@ -2,6 +2,9 @@ from magneto.utils.utils import detect_column_type, get_samples
 
 
 class StarmieContextualEncoder:
+    # Этот encoder не строит эмбеддинги напрямую.
+    # Его задача — превратить target-столбец в контекстное текстовое представление,
+    # где target кодируется как часть локального окна соседних колонок.
     def __init__(
         self,
         tokenizer,
@@ -14,6 +17,8 @@ class StarmieContextualEncoder:
         include_values=True,
         include_target_type=True,
     ):
+        # tokenizer хранится для совместимости интерфейса;
+        # основная работа этого класса — сериализация колонок в текст
         self._tokenizer = tokenizer
         self.encoding_mode = encoding_mode
         self.sampling_mode = sampling_mode
@@ -35,6 +40,7 @@ class StarmieContextualEncoder:
             )
 
     def encode(self, df, target_col):
+        # Берём все колонки таблицы и оставляем только локальное окно вокруг target
         columns = list(df.columns)
         window_columns = self._limit_columns_around_target(
             columns, target_col, self.max_context_columns
@@ -43,12 +49,18 @@ class StarmieContextualEncoder:
         if target_col not in window_columns:
             raise ValueError(f"Target column '{target_col}' not found in window columns.")
 
+        # Позиция target-столбца внутри окна.
+        # Позже matcher использует её, чтобы выбрать нужный <<COL>> marker token.
         target_marker_ordinal = window_columns.index(target_col)
         if self.encoding_mode == "table_context_window_starmie_marker":
             text = self._build_legacy_window_serialization(df, window_columns)
         else:
             text = self._build_structured_window_serialization(df, window_columns)
 
+        # Возвращаем:
+        # text — сериализацию окна,
+        # target_marker_ordinal — номер target-столбца внутри окна,
+        # window_columns — какие колонки попали в локальный контекст
         return {
             "text": text,
             "target_col": target_col,
@@ -57,6 +69,7 @@ class StarmieContextualEncoder:
         }
 
     def _build_legacy_window_serialization(self, df, window_columns):
+        # Старый, более простой формат сериализации окна колонок
         parts = ["Window Table Representation."]
 
         for col in window_columns:
@@ -65,6 +78,8 @@ class StarmieContextualEncoder:
         return "\n".join(parts)
 
     def _build_structured_window_serialization(self, df, window_columns):
+        # Новый structured-формат: таблица представляется как
+        # упорядоченная последовательность колонок с marker token <<COL>>
         parts = [
             "Column Ordered Table Serialization.",
             "Each marker denotes one contextualized column representation.",
@@ -76,12 +91,14 @@ class StarmieContextualEncoder:
         return "\n".join(parts)
 
     def _build_legacy_column_block(self, df, col):
+        # Legacy-блок: <<COL>> | header | values
         block_parts = [self.col_marker]
 
         if self.include_header:
             block_parts.append(str(col))
 
         if self.include_values:
+            # Берём только sample values, а не все значения столбца
             tokens = get_samples(df[col], n=self.n_samples, mode=self.sampling_mode)
             tokens = self._clean_token_list(tokens)
             if tokens:
@@ -90,15 +107,18 @@ class StarmieContextualEncoder:
         return " | ".join(block_parts)
 
     def _build_structured_column_block(self, df, col):
+        # Structured-блок: <<COL>> ; header = ... ; type = ... ; values = ...
         block_parts = [self.col_marker]
 
         if self.include_header:
             block_parts.append(f"header = {col}")
 
         if self.include_target_type:
+            # Тип данных определяется локальной утилитой detect_column_type
             block_parts.append(f"type = {detect_column_type(df[col])}")
 
         if self.include_values:
+            # Для значений используем sample values через get_samples
             tokens = get_samples(df[col], n=self.n_samples, mode=self.sampling_mode)
             tokens = self._clean_token_list(tokens)
             values_text = " ; ".join(tokens) if tokens else "NONE"
@@ -107,19 +127,23 @@ class StarmieContextualEncoder:
         return " ; ".join(block_parts)
 
     def _limit_columns_around_target(self, columns, target_col, max_columns):
+        # Если ограничение не задано или target не найден, возвращаем все колонки
         if target_col not in columns or max_columns is None or max_columns >= len(columns):
             return columns
 
+        # Если разрешена только одна колонка, оставляем только target
         if max_columns <= 1:
             return [target_col]
 
         target_idx = columns.index(target_col)
+        # Делим окно на левую и правую часть вокруг target-столбца
         left_slots = (max_columns - 1) // 2
         right_slots = max_columns - 1 - left_slots
 
         start = max(0, target_idx - left_slots)
         end = min(len(columns), target_idx + right_slots + 1)
 
+        # Если target расположен у края таблицы, добираем недостающие позиции с другой стороны
         current_len = end - start
         if current_len < max_columns:
             missing = max_columns - current_len
@@ -134,6 +158,7 @@ class StarmieContextualEncoder:
         return columns[start:end]
 
     def _clean_token_list(self, tokens):
+        # Удаляем None, пустые строки и лишние пробелы из sample values
         cleaned = []
         for token in tokens:
             if token is None:
