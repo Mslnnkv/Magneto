@@ -147,17 +147,6 @@ The recommended workflow is the one documented above through:
 - `scripts/training`
 - `scripts/evaluation`
 
-## Academic Positioning
-
-If you describe this repository in a thesis or presentation, the most accurate wording is:
-
-> The project is based on the Magneto schema matching framework and extends it with contextual column encoders, Starmie-inspired structured encoding, synthetic held-out benchmarks, and fine-tuning scripts for context-dependent column matching experiments.
-
-This wording makes it clear that:
-- the work is not a full rewrite from scratch;
-- the upstream Magneto codebase is acknowledged;
-- the contextual retrieval branch and experiments are your contribution within that foundation.
-
 ## Upstream Credits
 
 The original Magneto framework and its baseline architecture come from the upstream Magneto project by the original authors. This branch keeps that foundation and adapts it for the diploma experiments described above.
