@@ -7,6 +7,7 @@ if str(ROOT) not in sys.path:
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.patches import Patch
 
 from magneto.evaluation import BenchmarkConfig, ModelConfig, evaluate_many
 
@@ -35,6 +36,12 @@ PLOT_MODEL_DISPLAY_ORDER = [
 PLOT_BENCHMARK_LABELS = {
     "version_5": "без шума",
     "version_6": "с шумом",
+}
+
+PLOT_STYLE = {
+    "Magneto": {"color": "#d9d9d9", "hatch": "", "edgecolor": "black"},
+    "Contextual Magneto": {"color": "#ffffff", "hatch": "///", "edgecolor": "black"},
+    "Contextual Magneto (с дообучением)": {"color": "#a6a6a6", "hatch": "xx", "edgecolor": "black"},
 }
 
 
@@ -150,23 +157,49 @@ def save_plot(summary_df, output_path: Path):
         lambda value: PLOT_BENCHMARK_LABELS.get(value, value)
     )
 
+    plot_colors = [PLOT_STYLE[label]["color"] for label in PLOT_MODEL_DISPLAY_ORDER]
+
     top5_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="top5_accuracy")
     top5_pivot = top5_pivot.reindex(columns=PLOT_MODEL_DISPLAY_ORDER)
-    top5_pivot.plot(kind="bar", ax=axes[0], title="Top-5 Accuracy", fontsize=14)
+    top5_pivot.plot(kind="bar", ax=axes[0], title="Top-5 Accuracy", fontsize=14, color=plot_colors)
     axes[0].set_ylabel("Top-5", fontsize=16)
     axes[0].set_xlabel("Benchmark", fontsize=16)
 
     mrr_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="mrr")
     mrr_pivot = mrr_pivot.reindex(columns=PLOT_MODEL_DISPLAY_ORDER)
-    mrr_pivot.plot(kind="bar", ax=axes[1], title="MRR", fontsize=14)
+    mrr_pivot.plot(kind="bar", ax=axes[1], title="MRR", fontsize=14, color=plot_colors)
     axes[1].set_ylabel("MRR", fontsize=16)
     axes[1].set_xlabel("Benchmark", fontsize=16)
 
     for ax in axes.flat:
+        for container, label in zip(ax.containers, PLOT_MODEL_DISPLAY_ORDER):
+            style = PLOT_STYLE[label]
+            for patch in container.patches:
+                patch.set_facecolor(style["color"])
+                patch.set_edgecolor(style["edgecolor"])
+                patch.set_linewidth(1.2)
+                patch.set_hatch(style["hatch"])
+
         ax.tick_params(axis="x", labelsize=14, rotation=0)
         ax.tick_params(axis="y", labelsize=14)
         ax.title.set_fontsize(18)
-        ax.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=13, title_fontsize=14)
+        legend_handles = [
+            Patch(
+                facecolor=PLOT_STYLE[label]["color"],
+                edgecolor=PLOT_STYLE[label]["edgecolor"],
+                hatch=PLOT_STYLE[label]["hatch"],
+                label=label,
+            )
+            for label in PLOT_MODEL_DISPLAY_ORDER
+        ]
+        ax.legend(
+            handles=legend_handles,
+            title="Model",
+            bbox_to_anchor=(1.02, 1),
+            loc="upper left",
+            fontsize=13,
+            title_fontsize=14,
+        )
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=200, bbox_inches="tight")

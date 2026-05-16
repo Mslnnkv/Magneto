@@ -1,165 +1,163 @@
-<h2 align="center">Magneto: Combining Small and Large Language Models<br>for Schema Matching</h2>
+# Contextual Magneto for Diploma Experiments
 
-> Welcome to Magneto 🧲
+This repository contains a working research branch based on the original **Magneto** project for schema matching. The current version was adapted for diploma experiments on **context-dependent column matching**, **contextual encoding**, **fine-tuning**, and **synthetic benchmark evaluation**.
 
-This repository contains the codebase of our paper: [Magneto: Combining Small and Large Language Models for Schema Matching](https://arxiv.org/abs/2412.08194) (VLDB '25)
+Important context:
+- the repository **continues** the upstream Magneto codebase rather than replacing it;
+- the core Magneto retriever and part of the project structure are inherited from the original authors;
+- the contextual encoders, synthetic benchmarks, training scripts, evaluation scripts, and presentation-oriented outputs were extended in this branch for the diploma work.
 
-Magneto is an innovative framework designed to enhance schema matching (SM) by intelligently combining small, pre-trained language models (SLMs) with large language models (LLMs). Our approach is structured to be both cost-effective and broadly applicable.
+## What Is Implemented in This Branch
 
-The framework operates in two distinct phases:
-- **Candidate Retrieval**: This phase involves using SLMs to quickly identify a manageable subset of potential matches from a vast pool of possibilities. Optional LLM-powered fine-tuning can be performed.
-- **Match Reranking**: In this phase, LLMs take over to assess and reorder the candidates, simplifying the process for users to review and select the most suitable matches.
+The current project focuses on the embedding-based retrieval part of Magneto and includes:
 
-## Contents
+- baseline non-contextual matching (`header_values_verbose`);
+- contextual span-based encoding;
+- Starmie-inspired structured contextual encoding;
+- fine-tuning for contextual encoders;
+- synthetic benchmark generation (`version_1` ... `version_6`);
+- held-out evaluation and comparison plots for diploma experiments.
 
-* [Environment Setup](#environment-setup)
-* [Code Structure](#code-structure)
-* [Example Usage](#example-usage)
-* [Citations](#citation)
+The main final comparison in this branch is:
+- `Magneto`
+- `Contextual Magneto`
+- `Contextual Magneto (с дообучением)`
+
+## Repository Structure
+
+Top-level files and folders:
+
+- [`help.md`](C:/Users/AnnaM/Magneto/help.md) — short runbook with commands.
+- [`algorithms/magneto`](C:/Users/AnnaM/Magneto/algorithms/magneto) — main adapted Magneto codebase.
+- [`experiments`](C:/Users/AnnaM/Magneto/experiments) — upstream benchmark code that is not the main entrypoint for the diploma branch.
+
+Important paths inside `algorithms/magneto`:
+
+- [`scripts/benchmark_generation`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/benchmark_generation) — synthetic benchmark generators.
+- [`scripts/training`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/training) — triplet generation and fine-tuning scripts.
+- [`scripts/evaluation`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/evaluation) — evaluation entrypoints and plot generation.
+- [`magneto`](C:/Users/AnnaM/Magneto/algorithms/magneto/magneto) — core matching code and encoders.
+- [`evaluation_outputs`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs) — summary tables and plots.
 
 ## Environment Setup
 
-### Clone the Repository
+Create and activate a local virtual environment:
 
-```bash
-git clone https://github.com/VIDA-NYU/magneto-matcher.git
-cd magneto-matcher
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
-### Install Dependencies
+Install dependencies:
 
-```bash
-conda create -n magneto python=3.10 -y
-conda activate magneto
-pip install --upgrade pip     # optional
+```powershell
 pip install -r requirements.txt
+pip install -r algorithms\magneto\requirements.txt
 ```
 
-### Data Preparation
+Notes:
+- embedding-based runs use `sentence-transformers/all-mpnet-base-v2` as the base model;
+- if the environment is offline, this model must already exist in the local Hugging Face cache;
+- fine-tuned weights are stored locally in:
+  - [`finetuned_context_window_span_mpnet.pth`](C:/Users/AnnaM/Magneto/algorithms/magneto/finetuned_context_window_span_mpnet.pth)
+  - [`finetuned_context_window_starmie_structured_mpnet.pth`](C:/Users/AnnaM/Magneto/algorithms/magneto/finetuned_context_window_starmie_structured_mpnet.pth)
 
-The data folder contains the datasets used for data integration tasks. Download the data folder from [this Google Drive link](https://drive.google.com/drive/folders/19kCWQI0CWHs1ZW9RQEUSeK6nuXoA-5B7?usp=sharing) and place it in the `data` directory. Contents include:
-- **`gdc`**: GDC benchmark from the paper. Contains ten tumor analysis study datasets to be matched to Genomics Data Commons (GDC) standards (also available on [Zenodo](https://zenodo.org/records/14963588): DOI 10.5281/zenodo.14963587).
-- **`Valentine-datasets`**: Schema matching benchmark from [Valentine paper](https://delftdata.github.io/valentine/) (also available on [Zenodo](https://zenodo.org/records/5084605#.YOgWHBMzY-Q): DOI 10.5281/zenodo.5084605).
-- **`synthetic`**: Synthetic data generated using `llm-aug` and `struct-aug` for LLM-based fine-tuning. You can use the provided JSON files directly or regenerate by modifying the underlying LLM model and other configurations in the [code](https://github.com/VIDA-NYU/magneto-matcher/blob/main/algorithms/magneto/finetune/data_generation/synthetic_data_gen.py). Processed data for synthetic match generation is located in the same folder under `unique_columns` directory.
+## Main Workflow
 
-### Download the fine-tuned model for GDC benchmark
+### 1. Generate synthetic benchmarks
 
-This step is optional but required for `MagnetoFT` and `MagnetoFTGPT`. You can use fine-tuned models in two ways:
-
-1. **HuggingFace (Recommended for GDC)**: Use the fine-tuned GDC retriever directly from HuggingFace:
-   ```python
-   from magneto import Magneto
-   mag = Magneto(embedding_model="vida-nyu/magneto-schema-retriever-gdc")
-   ```
-   The model will be automatically downloaded and cached on first use.
-
-2. **Local Model Files**: Download the fine-tuned model of your choice from [this Google Drive link](https://drive.google.com/drive/folders/1vlWaTm4rpEH4hs-Kq3mhSfTyffhDEp6P?usp=sharing) and place it in the `models` directory. Then use the local path:
-   ```python
-   from magneto import Magneto
-   mag = Magneto(embedding_model="models/mpnet-gdc-semantic-64-0.5.pth")
-   ```
-
-### Set the Environment Variable
-This step is optional but required for `MagnetoGPT` and `MagnetoFTGPT`. Set the `OPENAI_API_KEY` environment variable using the following commands based on your operating system:
-#### For Windows:
-```bash
-set OPENAI_API_KEY=your_openai_api_key_here
-```
-#### For macOS/Linux:
-```bash
-export OPENAI_API_KEY=your_api_key_here
-```
-To use `LLaMA3.3` as the LLM reranker, you can also set up `LLAMA_API_KEY` accordingly.
-
-## Code Structure
-> note that batched benchmark on baseline methods are on this [repo](https://github.com/VIDA-NYU/data-harmonization-benchmark).
-
-```bash
-|-- algorithm
-    |-- magneto # code for Magneto
-        |-- finetune # code for Magneto FT
-        |-- magneto # Magneto core
-    |-- topk_metrics.py # Introducing Recall @ topk
-|-- experiments
-    |-- ablations # code for ablation study
-    |-- benchmark # code for benchmark study, note that batched benchmark on baseline methods are on this [repo](https://github.com/VIDA-NYU/data-harmonization-benchmark)
+```powershell
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_1.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_2.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_3.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_4.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_5.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_6.py
 ```
 
-## Example Usage
-To reproduce the GDC benchmark results, you can run the following command:
-```bash
-python experiments/benchmarks/gdc_benchmark.py --mode [MODE] --embedding_model [EMBEDDING_MODEL] --llm_model [LLM_MODEL]
-```
-- `[MODE]`: Specifies the operational mode. Options include: `header-value-default`, `header-value-repeat`, and `header-value-verbose`.
-- `[EMBEDDING_MODEL]`: Selects the pre-trained language model to use as the retriever. Available options are:
-  - Default models: `mpnet`, `roberta`, `e5`, `arctic`, or `minilm` (default: `mpnet`)
-  - HuggingFace models: Use a HuggingFace model identifier (e.g., `vida-nyu/magneto-schema-retriever-gdc` for the fine-tuned GDC retriever)
-  - Local fine-tuned models: Provide a path to a local `.pth` model file (e.g., `models/mpnet-gdc-semantic-64-0.5.pth`)
-- `[LLM_MODEL]`: Specifies the llm-based reranker. Current options are `gpt-4o-mini` or `llama3.3-70b`.
+### 2. Build training triplets
 
-To reproduce the Valentine benchmark results, you can run the following command:
-```bash
-python experiments/benchmarks/valentine_benchmark.py --mode [MODE] --dataset [DATASET]
-```
-where `[MODE]` is similar to the GDC benchmark and `[DATASET]` can be one of the following:
-- `chembl`
-- `magellan`
-- `opendata`
-- `tpc`
-- `wikidata`
-
-You can also change other Magneto configurations in the corresponding benchmark file.
-
-### Using the Fine-tuned GDC Retriever from HuggingFace
-
-To use the fine-tuned retriever model for GDC benchmark tasks, you can specify the HuggingFace model identifier:
-
-```bash
-python experiments/benchmarks/gdc_benchmark.py --mode header_values_verbose --embedding_model vida-nyu/magneto-schema-retriever-gdc --llm_model gpt-4o-mini
+```powershell
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\training\build_training_triplets.py
 ```
 
-Or in Python code:
+Triplets are built only from:
+- `version_3`
+- `version_4`
 
-```python
-from magneto import Magneto
-import pandas as pd
+This means the final held-out evaluation should focus on:
+- `version_5`
+- `version_6`
 
-# Load your source and target DataFrames
-source_df = pd.read_csv("path/to/source.csv")
-target_df = pd.read_csv("path/to/target.csv")
+### 3. Fine-tune contextual models
 
-# Initialize Magneto with the HuggingFace fine-tuned model
-mag = Magneto(
-    embedding_model="vida-nyu/magneto-schema-retriever-gdc",
-    encoding_mode="header_values_verbose",
-    topk=20
-)
-
-# Get matches
-matches = mag.get_matches(source_df, target_df)
+```powershell
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\training\train_contextual_span_encoder.py
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\training\train_starmie_structured_encoder.py
 ```
 
-The model will be automatically downloaded from HuggingFace on first use and cached locally for subsequent runs. For more information about the model, visit its [HuggingFace page](https://huggingface.co/vida-nyu/magneto-schema-retriever-gdc).
+### 4. Run evaluation
 
-## Citation
+Held-out benchmark:
 
-If you use Magneto in your research or project, please cite our paper:
-
-```bibtex
-@article{10.14778/3742728.3742757,
-  author = {Liu, Yurong and Pena, Eduardo H. M. and Santos, A\'{e}cio and Wu, Eden and Freire, Juliana},
-  title = {Magneto: Combining Small and Large Language Models for Schema Matching},
-  year = {2025},
-  issue_date = {April 2025},
-  publisher = {VLDB Endowment},
-  volume = {18},
-  number = {8},
-  issn = {2150-8097},
-  url = {https://doi.org/10.14778/3742728.3742757},
-  doi = {10.14778/3742728.3742757},
-  journal = {Proc. VLDB Endow.},
-  month = apr,
-  pages = {2681--2694},
-  numpages = {14}
-}
+```powershell
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_heldout_context_benchmark.py
 ```
+
+Starmie-style held-out benchmark:
+
+```powershell
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_starmie_context_benchmark.py
+```
+
+Full synthetic comparison:
+
+```powershell
+.\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_all_synthetic_benchmarks.py
+```
+
+## Main Result Files
+
+The most important outputs currently used in the diploma branch are:
+
+- [`all_synthetic_benchmarks_summary.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary.csv)
+- [`all_synthetic_benchmarks_errors.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_errors.csv)
+- [`all_synthetic_benchmarks_summary.png`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary.png)
+- [`all_synthetic_benchmarks_summary_bw.png`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary_bw.png)
+
+Benchmark-specific outputs:
+
+- [`synthetic_benchmark_version_5/version_5_evaluation_results.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_5/version_5_evaluation_results.csv)
+- [`synthetic_benchmark_version_5/version_5_evaluation_errors.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_5/version_5_evaluation_errors.csv)
+- [`synthetic_benchmark_version_6/version_6_evaluation_results.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_6/version_6_evaluation_results.csv)
+- [`synthetic_benchmark_version_6/version_6_evaluation_errors.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_6/version_6_evaluation_errors.csv)
+
+## Naming Convention for Deprecated Files
+
+Files with the suffix `_deprecated.py` are kept only for historical reference. They are not the main entrypoints for the current diploma workflow.
+
+Typical examples:
+- old ad-hoc comparison scripts;
+- old debug scripts;
+- old smoke-test scripts;
+- superseded evaluation entrypoints.
+
+The recommended workflow is the one documented above through:
+- `scripts/benchmark_generation`
+- `scripts/training`
+- `scripts/evaluation`
+
+## Academic Positioning
+
+If you describe this repository in a thesis or presentation, the most accurate wording is:
+
+> The project is based on the Magneto schema matching framework and extends it with contextual column encoders, Starmie-inspired structured encoding, synthetic held-out benchmarks, and fine-tuning scripts for context-dependent column matching experiments.
+
+This wording makes it clear that:
+- the work is not a full rewrite from scratch;
+- the upstream Magneto codebase is acknowledged;
+- the contextual retrieval branch and experiments are your contribution within that foundation.
+
+## Upstream Credits
+
+The original Magneto framework and its baseline architecture come from the upstream Magneto project by the original authors. This branch keeps that foundation and adapts it for the diploma experiments described above.

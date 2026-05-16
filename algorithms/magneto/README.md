@@ -1,32 +1,36 @@
-# Magneto
+# Magneto Package in the Diploma Branch
 
-Magneto is an innovative framework designed to enhance schema matching (SM) by intelligently combining small, pre-trained language models (SLMs) with large language models (LLMs). Our approach is structured to be both cost-effective and broadly applicable.
+This directory contains the **adapted Magneto implementation** used in the diploma experiments.
 
-## Installation
+The code is based on the original Magneto project, but in this branch it is used primarily for:
 
+- baseline embedding-based schema matching;
+- contextual column encoding;
+- Starmie-inspired structured contextual encoding;
+- fine-tuning with triplet loss;
+- synthetic benchmark generation and evaluation.
 
-You can install the latest stable version of Magneto from [PyPI](https://pypi.org/project/magneto-python/):
+## What Is the Main Entry Point
 
-```
-pip install magneto-python
-```
+For the current branch, the recommended entrypoints are not the old upstream benchmark scripts, but:
 
+- [`scripts/benchmark_generation`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/benchmark_generation)
+- [`scripts/training`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/training)
+- [`scripts/evaluation`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/evaluation)
 
-## Usage
-After the installation, you can use the stand-alone version of Magneto like this:
+For full setup and reproduction steps, see the repository root README:
 
-```Python
-from magneto import Magneto
-import pandas as pd
+- [`README.md`](C:/Users/AnnaM/Magneto/README.md)
 
-source = pd.DataFrame({"column_1": ["a1", "b1", "c1"], "col_2": ["a2", "b2", "c2"]})
-target = pd.DataFrame({"column_1a": ["a1", "b1", "c1"], "col2": ["a2", "b2", "c2"]})
+## Notes
 
-mode = "header_values_verbose"
-mag = Magneto(encoding_mode=mode)
-matches = mag.get_matches(source, target)
+- Files ending with `_deprecated.py` are preserved only as historical or debugging artifacts.
+- The active fine-tuned checkpoints are:
+  - [`finetuned_context_window_span_mpnet.pth`](C:/Users/AnnaM/Magneto/algorithms/magneto/finetuned_context_window_span_mpnet.pth)
+  - [`finetuned_context_window_starmie_structured_mpnet.pth`](C:/Users/AnnaM/Magneto/algorithms/magneto/finetuned_context_window_starmie_structured_mpnet.pth)
+- The active summary outputs are stored in:
+  - [`evaluation_outputs`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs)
 
-print(matches)
-```
+## Attribution
 
-See our [GitHub repository](https://github.com/VIDA-NYU/data-integration-eval/tree/main/algorithms/magneto) for more examples.
+The upstream Magneto framework belongs to its original authors. This package directory contains a continued and adapted working branch for the diploma project rather than a separate independent reimplementation.
