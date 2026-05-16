@@ -147,6 +147,15 @@ The recommended workflow is the one documented above through:
 - `scripts/training`
 - `scripts/evaluation`
 
-## Upstream Credits
+## License and Attribution
 
-The original Magneto framework and its baseline architecture come from the upstream Magneto project by the original authors. This branch keeps that foundation and adapts it for the diploma experiments described above.
+This repository is based on the original Magneto project:
+https://github.com/VIDA-NYU/magneto-matcher
+
+The original Magneto framework is licensed under Apache-2.0.
+The original license file is preserved in this repository.
+
+This diploma branch extends the original codebase with contextual column encoders,
+Starmie-inspired structured encoding, synthetic benchmarks, fine-tuning scripts,
+and evaluation utilities for context-dependent schema matching experiments.
+
