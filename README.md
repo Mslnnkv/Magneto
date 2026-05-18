@@ -150,19 +150,6 @@ The recommended workflow is documented above through:
 - `scripts/training`
 - `scripts/evaluation`
 
-## Academic Positioning
-
-Suggested wording for the thesis:
-
-> The project is based on the Magneto schema matching framework and extends it
-> with contextual column encoders, Starmie-inspired structured encoding,
-> synthetic held-out benchmarks, and fine-tuning scripts for context-dependent
-> column matching experiments.
-
-This wording makes clear that the work continues the upstream Magneto codebase
-and that the contextual retrieval branch and experiments are the diploma
-contribution within that foundation.
-
 ## License and Attribution
 
 This repository is based on the original Magneto project:
