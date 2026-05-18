@@ -1,43 +1,44 @@
 # Contextual Magneto for Diploma Experiments
 
-This repository contains a working research branch based on the original **Magneto** project for schema matching. The current version was adapted for diploma experiments on **context-dependent column matching**, **contextual encoding**, **fine-tuning**, and **synthetic benchmark evaluation**.
+This repository is a diploma research branch based on the original
+**Magneto** project for schema matching. The branch extends the original
+embedding-based retrieval pipeline with contextual column encoders,
+Starmie-inspired structured encoding, synthetic benchmarks, fine-tuning, and
+evaluation scripts for context-dependent column matching.
 
-Important context:
-- the repository **continues** the upstream Magneto codebase rather than replacing it;
-- the core Magneto retriever and part of the project structure are inherited from the original authors;
-- the contextual encoders, synthetic benchmarks, training scripts, evaluation scripts, and presentation-oriented outputs were extended in this branch for the diploma work.
+The work here should be read as a continuation and adaptation of Magneto, not
+as a separate implementation from scratch.
 
-## What Is Implemented in This Branch
+## What This Branch Adds
 
-The current project focuses on the embedding-based retrieval part of Magneto and includes:
+- Baseline Magneto comparison with `header_values_verbose`.
+- Contextual span-based column encoding.
+- Starmie-inspired structured contextual column encoding.
+- Triplet-based fine-tuning for contextual encoders.
+- Synthetic benchmark generation: `version_1` ... `version_6`.
+- Held-out evaluation scripts and presentation-ready plots.
 
-- baseline non-contextual matching (`header_values_verbose`);
-- contextual span-based encoding;
-- Starmie-inspired structured contextual encoding;
-- fine-tuning for contextual encoders;
-- synthetic benchmark generation (`version_1` ... `version_6`);
-- held-out evaluation and comparison plots for diploma experiments.
+The main final comparison used in the diploma experiments is:
 
-The main final comparison in this branch is:
 - `Magneto`
 - `Contextual Magneto`
-- `Contextual Magneto (с дообучением)`
+- `Contextual Magneto (fine-tuned)`
 
 ## Repository Structure
 
 Top-level files and folders:
 
-- [`help.md`](C:/Users/AnnaM/Magneto/help.md) — short runbook with commands.
-- [`algorithms/magneto`](C:/Users/AnnaM/Magneto/algorithms/magneto) — main adapted Magneto codebase.
-- [`experiments`](C:/Users/AnnaM/Magneto/experiments) — upstream benchmark code that is not the main entrypoint for the diploma branch.
+- [help.md](help.md) - short runbook with the main commands.
+- [algorithms/magneto](algorithms/magneto) - adapted Magneto implementation.
+- [experiments](experiments) - upstream experiment code that is not the main entrypoint for this branch.
 
 Important paths inside `algorithms/magneto`:
 
-- [`scripts/benchmark_generation`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/benchmark_generation) — synthetic benchmark generators.
-- [`scripts/training`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/training) — triplet generation and fine-tuning scripts.
-- [`scripts/evaluation`](C:/Users/AnnaM/Magneto/algorithms/magneto/scripts/evaluation) — evaluation entrypoints and plot generation.
-- [`magneto`](C:/Users/AnnaM/Magneto/algorithms/magneto/magneto) — core matching code and encoders.
-- [`evaluation_outputs`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs) — summary tables and plots.
+- [scripts/benchmark_generation](algorithms/magneto/scripts/benchmark_generation) - synthetic benchmark generators.
+- [scripts/training](algorithms/magneto/scripts/training) - triplet generation and fine-tuning scripts.
+- [scripts/evaluation](algorithms/magneto/scripts/evaluation) - evaluation entrypoints and plot generation.
+- [magneto](algorithms/magneto/magneto) - core matching code and encoders.
+- [evaluation_outputs](algorithms/magneto/evaluation_outputs) - summary tables and plots.
 
 ## Environment Setup
 
@@ -56,11 +57,12 @@ pip install -r algorithms\magneto\requirements.txt
 ```
 
 Notes:
-- embedding-based runs use `sentence-transformers/all-mpnet-base-v2` as the base model;
-- if the environment is offline, this model must already exist in the local Hugging Face cache;
-- fine-tuned weights are stored locally in:
-  - [`finetuned_context_window_span_mpnet.pth`](C:/Users/AnnaM/Magneto/algorithms/magneto/finetuned_context_window_span_mpnet.pth)
-  - [`finetuned_context_window_starmie_structured_mpnet.pth`](C:/Users/AnnaM/Magneto/algorithms/magneto/finetuned_context_window_starmie_structured_mpnet.pth)
+
+- Embedding-based runs use `sentence-transformers/all-mpnet-base-v2` as the base model.
+- If the environment is offline, this model must already exist in the local Hugging Face cache.
+- Fine-tuned weights are stored locally in:
+  - [finetuned_context_window_span_mpnet.pth](algorithms/magneto/finetuned_context_window_span_mpnet.pth)
+  - [finetuned_context_window_starmie_structured_mpnet.pth](algorithms/magneto/finetuned_context_window_starmie_structured_mpnet.pth)
 
 ## Main Workflow
 
@@ -82,10 +84,12 @@ Notes:
 ```
 
 Triplets are built only from:
+
 - `version_3`
 - `version_4`
 
-This means the final held-out evaluation should focus on:
+The final held-out evaluation should focus on:
+
 - `version_5`
 - `version_6`
 
@@ -98,7 +102,7 @@ This means the final held-out evaluation should focus on:
 
 ### 4. Run evaluation
 
-Held-out benchmark:
+Held-out contextual benchmark:
 
 ```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_heldout_context_benchmark.py
@@ -118,44 +122,58 @@ Full synthetic comparison:
 
 ## Main Result Files
 
-The most important outputs currently used in the diploma branch are:
+The main outputs used in the diploma branch are:
 
-- [`all_synthetic_benchmarks_summary.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary.csv)
-- [`all_synthetic_benchmarks_errors.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_errors.csv)
-- [`all_synthetic_benchmarks_summary.png`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary.png)
-- [`all_synthetic_benchmarks_summary_bw.png`](C:/Users/AnnaM/Magneto/algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary_bw.png)
+- [all_synthetic_benchmarks_summary.csv](algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary.csv)
+- [all_synthetic_benchmarks_errors.csv](algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_errors.csv)
+- [all_synthetic_benchmarks_summary.png](algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary.png)
+- [all_synthetic_benchmarks_summary_bw.png](algorithms/magneto/evaluation_outputs/all_synthetic_benchmarks_summary_bw.png)
 
 Benchmark-specific outputs:
 
-- [`synthetic_benchmark_version_5/version_5_evaluation_results.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_5/version_5_evaluation_results.csv)
-- [`synthetic_benchmark_version_5/version_5_evaluation_errors.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_5/version_5_evaluation_errors.csv)
-- [`synthetic_benchmark_version_6/version_6_evaluation_results.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_6/version_6_evaluation_results.csv)
-- [`synthetic_benchmark_version_6/version_6_evaluation_errors.csv`](C:/Users/AnnaM/Magneto/algorithms/magneto/synthetic_benchmark_version_6/version_6_evaluation_errors.csv)
+- [version_5_evaluation_results.csv](algorithms/magneto/synthetic_benchmark_version_5/version_5_evaluation_results.csv)
+- [version_5_evaluation_errors.csv](algorithms/magneto/synthetic_benchmark_version_5/version_5_evaluation_errors.csv)
+- [version_6_evaluation_results.csv](algorithms/magneto/synthetic_benchmark_version_6/version_6_evaluation_results.csv)
+- [version_6_evaluation_errors.csv](algorithms/magneto/synthetic_benchmark_version_6/version_6_evaluation_errors.csv)
 
-## Naming Convention for Deprecated Files
+## Deprecated Files
 
-Files with the suffix `_deprecated.py` are kept only for historical reference. They are not the main entrypoints for the current diploma workflow.
+Files ending with `_deprecated.py` are kept only for historical reference. They
+are not the main entrypoints for the current diploma workflow.
 
-Typical examples:
-- old ad-hoc comparison scripts;
-- old debug scripts;
-- old smoke-test scripts;
-- superseded evaluation entrypoints.
+Typical examples include old ad-hoc comparison scripts, debug scripts,
+smoke-test scripts, and superseded evaluation entrypoints.
 
-The recommended workflow is the one documented above through:
+The recommended workflow is documented above through:
+
 - `scripts/benchmark_generation`
 - `scripts/training`
 - `scripts/evaluation`
+
+## Academic Positioning
+
+Suggested wording for the thesis:
+
+> The project is based on the Magneto schema matching framework and extends it
+> with contextual column encoders, Starmie-inspired structured encoding,
+> synthetic held-out benchmarks, and fine-tuning scripts for context-dependent
+> column matching experiments.
+
+This wording makes clear that the work continues the upstream Magneto codebase
+and that the contextual retrieval branch and experiments are the diploma
+contribution within that foundation.
 
 ## License and Attribution
 
 This repository is based on the original Magneto project:
 https://github.com/VIDA-NYU/magneto-matcher
 
-The original Magneto framework is licensed under Apache-2.0.
-The original license file is preserved in this repository.
+The original Magneto framework is licensed under Apache-2.0. The original
+license file is preserved in this repository:
 
-This diploma branch extends the original codebase with contextual column encoders,
-Starmie-inspired structured encoding, synthetic benchmarks, fine-tuning scripts,
-and evaluation utilities for context-dependent schema matching experiments.
+- [LICENSE](LICENSE)
 
+This diploma branch extends the original codebase with contextual column
+encoders, Starmie-inspired structured encoding, synthetic benchmarks,
+fine-tuning scripts, and evaluation utilities for context-dependent schema
+matching experiments.

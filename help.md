@@ -1,6 +1,17 @@
 # How To Run
 
-## 1. Сгенерировать benchmark-версии
+This is a short command checklist for reproducing the diploma experiments.
+
+## 1. Prepare the environment
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pip install -r algorithms\magneto\requirements.txt
+```
+
+## 2. Generate benchmark versions
 
 ```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_1.py
@@ -11,48 +22,38 @@
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\benchmark_generation\generate_benchmark_version_6.py
 ```
 
-## 2. Построить triplets для fine-tuning
+## 3. Build triplets for fine-tuning
 
 ```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\training\build_training_triplets.py
 ```
 
-Triplets строятся только из:
-- `version_3`
-- `version_4`
+Triplets are built from `version_3` and `version_4`.
 
-## 3. Обучить модели
+## 4. Train the contextual models
 
 ```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\training\train_contextual_span_encoder.py
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\training\train_starmie_structured_encoder.py
 ```
 
-Будут сохранены веса:
+The scripts save:
+
 - `algorithms\magneto\finetuned_context_window_span_mpnet.pth`
 - `algorithms\magneto\finetuned_context_window_starmie_structured_mpnet.pth`
 
-## 4. Основные evaluation-запуски
-
-Held-out benchmark:
+## 5. Run evaluation
 
 ```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_heldout_context_benchmark.py
-```
-
-Starmie-style benchmark:
-
-```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_starmie_context_benchmark.py
-```
-
-Общий synthetic запуск:
-
-```powershell
 .\.venv\Scripts\python.exe algorithms\magneto\scripts\evaluation\evaluate_all_synthetic_benchmarks.py
 ```
 
-## 5. Результаты
+## 6. Main outputs
 
 - `algorithms\magneto\evaluation_outputs\all_synthetic_benchmarks_summary.csv`
 - `algorithms\magneto\evaluation_outputs\all_synthetic_benchmarks_summary.png`
+- `algorithms\magneto\evaluation_outputs\all_synthetic_benchmarks_summary_bw.png`
+
+For the final thesis comparison, use held-out benchmarks `version_5` and `version_6`.

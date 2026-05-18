@@ -1,6 +1,7 @@
 # Internal Magneto Module
 
-This folder contains the internal Python package for the adapted Magneto branch used in the diploma project.
+This folder contains the internal Python package for the adapted Magneto branch
+used in the diploma project.
 
 Key components inside this package include:
 
@@ -11,7 +12,8 @@ Key components inside this package include:
 
 For project-level usage, setup, and experiment workflow, see:
 
-- [`README.md`](C:/Users/AnnaM/Magneto/README.md)
-- [`algorithms/magneto/README.md`](C:/Users/AnnaM/Magneto/algorithms/magneto/README.md)
+- [README.md](../../../README.md)
+- [algorithms/magneto/README.md](../README.md)
 
-This file is intentionally minimal so that repository-level documentation remains centralized in the top-level README.
+This file is intentionally minimal so that repository-level documentation
+remains centralized in the top-level README.

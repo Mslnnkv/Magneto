@@ -34,11 +34,17 @@ PLOT_MODEL_DISPLAY_ORDER = [
 ]
 
 PLOT_BENCHMARK_LABELS = {
-    "version_5": "без шума",
-    "version_6": "с шумом",
+    "version_5": "контекстный",
+    "version_6": "Starmie-like",
 }
 
-PLOT_STYLE = {
+COLOR_PLOT_STYLE = {
+    "Magneto": {"color": "#1f77b4", "hatch": "", "edgecolor": "black"},
+    "Contextual Magneto": {"color": "#ff7f0e", "hatch": "", "edgecolor": "black"},
+    "Contextual Magneto (с дообучением)": {"color": "#2ca02c", "hatch": "", "edgecolor": "black"},
+}
+
+BW_PLOT_STYLE = {
     "Magneto": {"color": "#d9d9d9", "hatch": "", "edgecolor": "black"},
     "Contextual Magneto": {"color": "#ffffff", "hatch": "///", "edgecolor": "black"},
     "Contextual Magneto (с дообучением)": {"color": "#a6a6a6", "hatch": "xx", "edgecolor": "black"},
@@ -114,8 +120,9 @@ def build_models():
     ]
 
 
-def save_plot(summary_df, output_path: Path):
+def save_plot(summary_df, output_path: Path, *, black_and_white: bool = False):
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(18, 7))
+    plot_style = BW_PLOT_STYLE if black_and_white else COLOR_PLOT_STYLE
 
     ranking_df = summary_df[summary_df["benchmark_type"] == "ranking"].copy()
     ranking_df = ranking_df[ranking_df["model_label"].isin(PLOT_MODEL_ORDER)].copy()
@@ -156,24 +163,28 @@ def save_plot(summary_df, output_path: Path):
     ranking_df["benchmark"] = ranking_df["benchmark"].astype(str).map(
         lambda value: PLOT_BENCHMARK_LABELS.get(value, value)
     )
+    displayed_benchmark_order = [
+        PLOT_BENCHMARK_LABELS["version_5"],
+        PLOT_BENCHMARK_LABELS["version_6"],
+    ]
 
-    plot_colors = [PLOT_STYLE[label]["color"] for label in PLOT_MODEL_DISPLAY_ORDER]
+    plot_colors = [plot_style[label]["color"] for label in PLOT_MODEL_DISPLAY_ORDER]
 
     top5_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="top5_accuracy")
-    top5_pivot = top5_pivot.reindex(columns=PLOT_MODEL_DISPLAY_ORDER)
+    top5_pivot = top5_pivot.reindex(index=displayed_benchmark_order, columns=PLOT_MODEL_DISPLAY_ORDER)
     top5_pivot.plot(kind="bar", ax=axes[0], title="Top-5 Accuracy", fontsize=14, color=plot_colors)
     axes[0].set_ylabel("Top-5", fontsize=16)
     axes[0].set_xlabel("Benchmark", fontsize=16)
 
     mrr_pivot = ranking_df.pivot(index="benchmark", columns="model_label", values="mrr")
-    mrr_pivot = mrr_pivot.reindex(columns=PLOT_MODEL_DISPLAY_ORDER)
+    mrr_pivot = mrr_pivot.reindex(index=displayed_benchmark_order, columns=PLOT_MODEL_DISPLAY_ORDER)
     mrr_pivot.plot(kind="bar", ax=axes[1], title="MRR", fontsize=14, color=plot_colors)
     axes[1].set_ylabel("MRR", fontsize=16)
     axes[1].set_xlabel("Benchmark", fontsize=16)
 
     for ax in axes.flat:
         for container, label in zip(ax.containers, PLOT_MODEL_DISPLAY_ORDER):
-            style = PLOT_STYLE[label]
+            style = plot_style[label]
             for patch in container.patches:
                 patch.set_facecolor(style["color"])
                 patch.set_edgecolor(style["edgecolor"])
@@ -185,9 +196,9 @@ def save_plot(summary_df, output_path: Path):
         ax.title.set_fontsize(18)
         legend_handles = [
             Patch(
-                facecolor=PLOT_STYLE[label]["color"],
-                edgecolor=PLOT_STYLE[label]["edgecolor"],
-                hatch=PLOT_STYLE[label]["hatch"],
+                facecolor=plot_style[label]["color"],
+                edgecolor=plot_style[label]["edgecolor"],
+                hatch=plot_style[label]["hatch"],
                 label=label,
             )
             for label in PLOT_MODEL_DISPLAY_ORDER
@@ -215,14 +226,17 @@ def main():
     summary_path = OUTPUT_DIR / "all_synthetic_benchmarks_summary.csv"
     errors_path = OUTPUT_DIR / "all_synthetic_benchmarks_errors.csv"
     plot_path = OUTPUT_DIR / "all_synthetic_benchmarks_summary.png"
+    bw_plot_path = OUTPUT_DIR / "all_synthetic_benchmarks_summary_bw.png"
 
     summary_df.to_csv(summary_path, index=False)
     errors_df.to_csv(errors_path, index=False)
     save_plot(summary_df, plot_path)
+    save_plot(summary_df, bw_plot_path, black_and_white=True)
 
     print("\nSaved summary to:", summary_path.resolve())
     print("Saved errors to:", errors_path.resolve())
     print("Saved plot to:", plot_path.resolve())
+    print("Saved black-and-white plot to:", bw_plot_path.resolve())
 
 
 if __name__ == "__main__":
